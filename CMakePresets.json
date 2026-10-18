@@ -1,0 +1,49 @@
+{
+  "version": 6,
+  "configurePresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "cacheVariables": { "CMAKE_BUILD_TYPE": "Debug" }
+    },
+    {
+      "name": "host-gcc",
+      "inherits": "base",
+      "cacheVariables": { "CMAKE_CXX_COMPILER": "g++" }
+    },
+    {
+      "name": "host-clang",
+      "inherits": "base",
+      "cacheVariables": { "CMAKE_CXX_COMPILER": "clang++" }
+    },
+    {
+      "name": "host-sanitizers",
+      "inherits": "host-gcc",
+      "cacheVariables": {
+        "CMAKE_CXX_FLAGS": "-fsanitize=address,undefined -fno-omit-frame-pointer"
+      }
+    },
+    {
+      "name": "arm-cortex-m4",
+      "inherits": "base",
+      "toolchainFile": "${sourceDir}/cmake/toolchain-arm-none-eabi.cmake",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "MinSizeRel",
+        "COURSE_BUILD_TESTS": "OFF"
+      }
+    }
+  ],
+  "buildPresets": [
+    { "name": "host-gcc", "configurePreset": "host-gcc" },
+    { "name": "host-clang", "configurePreset": "host-clang" },
+    { "name": "host-sanitizers", "configurePreset": "host-sanitizers" },
+    { "name": "arm-cortex-m4", "configurePreset": "arm-cortex-m4" }
+  ],
+  "testPresets": [
+    { "name": "host-gcc", "configurePreset": "host-gcc", "output": { "outputOnFailure": true } },
+    { "name": "host-clang", "configurePreset": "host-clang", "output": { "outputOnFailure": true } },
+    { "name": "host-sanitizers", "configurePreset": "host-sanitizers", "output": { "outputOnFailure": true } }
+  ]
+}
