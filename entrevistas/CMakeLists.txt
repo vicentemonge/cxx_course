@@ -1,0 +1,17 @@
+# Soluciones de referencia de las entrevistas simuladas. Se compilan y testean para que
+# el código de los solucionarios no se quede obsoleto.
+if(COURSE_BUILD_TESTS)
+  file(GLOB_RECURSE tests CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/*/solucion/test_*.cpp)
+  foreach(src IN LISTS tests)
+    get_filename_component(dir ${src} DIRECTORY)
+    get_filename_component(interview ${dir}/.. ABSOLUTE)
+    get_filename_component(interview ${interview} NAME)
+    get_filename_component(stem ${src} NAME_WE)
+    set(target entrevista_${interview}_${stem})
+    string(REPLACE "-" "_" target ${target})
+    add_executable(${target} ${src})
+    target_include_directories(${target} PRIVATE ${dir})
+    target_link_libraries(${target} PRIVATE course_warnings doctest::doctest_with_main)
+    add_test(NAME ${target} COMMAND ${target})
+  endforeach()
+endif()

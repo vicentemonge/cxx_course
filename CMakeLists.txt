@@ -54,6 +54,8 @@ foreach(m IN LISTS COURSE_MODULES)
   add_subdirectory(modules/${m})
 endforeach()
 
+add_subdirectory(entrevistas)
+
 if(COURSE_BUILD_FUZZERS)
   add_subdirectory(fuzz)
 endif()

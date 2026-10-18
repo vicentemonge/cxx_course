@@ -57,6 +57,12 @@ Cada punto del temario lleva tags que permiten seguir un tema a través del curs
 Índice completo, matriz módulo × tema y búsqueda por tag en [`docs/TAGS.md`](docs/TAGS.md).
 Glosario de términos en [`docs/GLOSARIO.md`](docs/GLOSARIO.md).
 
+## Entrevistas simuladas
+
+- [Senior C++ Engineer — Firefox Platform (Mozilla, ficticia)](entrevistas/mozilla-senior-cpp):
+  siete rondas (screening, coding, code review con código hostil, concurrencia, diseño de sistema,
+  rendimiento/embedded y liderazgo), con solucionario, rúbrica y soluciones compiladas y testeadas.
+
 ## Estructura
 
 ```
@@ -70,6 +76,7 @@ modules/NN-tema/
   examples/embedded/ ejemplos orientados a firmware
   exercise/         solución del ejercicio
   tests/            tests doctest del módulo
+entrevistas/        entrevistas simuladas con solucionario y soluciones testeadas
 fuzz/               fuzzers libFuzzer (opcional, Clang)
 ```
 
