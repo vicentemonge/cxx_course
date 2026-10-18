@@ -4,3 +4,5 @@ compile_commands.json
 *.map
 .vscode/
 .idea/
+__pycache__/
+*.pyc
