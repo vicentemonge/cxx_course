@@ -1,4 +1,4 @@
-#include "examples/raii_uart.hpp"
+#include "examples/embedded/raii_uart.hpp"
 #include <cstdio>
 
 int main() {

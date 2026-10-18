@@ -1,4 +1,4 @@
-#include "examples/generator.hpp"
+#include "examples/embedded/generator.hpp"
 #include <cstdio>
 
 int main() {

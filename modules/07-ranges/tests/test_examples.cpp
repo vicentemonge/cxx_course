@@ -1,5 +1,5 @@
 #include <doctest/doctest.h>
-#include "examples/adc_pipeline.hpp"
+#include "examples/embedded/adc_pipeline.hpp"
 #include <array>
 
 TEST_CASE("above_threshold descarta saturados") {

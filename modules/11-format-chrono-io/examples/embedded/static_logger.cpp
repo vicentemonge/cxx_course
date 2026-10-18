@@ -1,4 +1,4 @@
-#include "examples/static_logger.hpp"
+#include "examples/embedded/static_logger.hpp"
 #include <cstdio>
 
 int main() {

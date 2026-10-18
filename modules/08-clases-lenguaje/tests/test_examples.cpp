@@ -1,5 +1,5 @@
 #include <doctest/doctest.h>
-#include "examples/firmware_version.hpp"
+#include "examples/embedded/firmware_version.hpp"
 
 static_assert(m08::FirmwareVersion{1, 2, 3} < m08::FirmwareVersion{1, 3, 0});
 static_assert(m08::FirmwareVersion{2, 0, 0} == m08::FirmwareVersion{2, 0, 0});

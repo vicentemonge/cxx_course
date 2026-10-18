@@ -1,4 +1,4 @@
-#include "examples/event_dispatcher.hpp"
+#include "examples/embedded/event_dispatcher.hpp"
 #include <cstdio>
 
 int main() {

@@ -1,5 +1,5 @@
 #include <doctest/doctest.h>
-#include "examples/frame_parser.hpp"
+#include "examples/embedded/frame_parser.hpp"
 #include <array>
 
 TEST_CASE("FrameParser extrae una trama válida ignorando ruido") {

@@ -1,5 +1,5 @@
 #include <doctest/doctest.h>
-#include "examples/register_field.hpp"
+#include "examples/embedded/register_field.hpp"
 
 TEST_CASE("Field inserta sin tocar otros bits") {
     using F = m13::Field<4, 4>;

@@ -1,4 +1,4 @@
-#include "examples/frame_parser.hpp"
+#include "examples/embedded/frame_parser.hpp"
 #include <array>
 #include <cstdio>
 

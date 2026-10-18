@@ -1,5 +1,5 @@
 #include <doctest/doctest.h>
-#include "examples/spsc_ring.hpp"
+#include "examples/embedded/spsc_ring.hpp"
 #include <thread>
 
 TEST_CASE("SpscRing conserva orden entre hilos") {

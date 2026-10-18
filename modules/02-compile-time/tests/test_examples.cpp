@@ -1,5 +1,5 @@
 #include <doctest/doctest.h>
-#include "examples/crc32.hpp"
+#include "examples/embedded/crc32.hpp"
 
 static_assert(m02::crc32("123456789") == 0xCBF43926U);
 

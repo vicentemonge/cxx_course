@@ -1,5 +1,5 @@
 #include <doctest/doctest.h>
-#include "examples/generator.hpp"
+#include "examples/embedded/generator.hpp"
 #include <vector>
 
 TEST_CASE("fibonacci genera la secuencia esperada") {

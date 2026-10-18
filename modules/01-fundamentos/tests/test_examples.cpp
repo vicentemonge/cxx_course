@@ -1,5 +1,5 @@
 #include <doctest/doctest.h>
-#include "examples/raii_uart.hpp"
+#include "examples/embedded/raii_uart.hpp"
 #include <type_traits>
 
 static_assert(!std::is_copy_constructible_v<m01::Uart>);

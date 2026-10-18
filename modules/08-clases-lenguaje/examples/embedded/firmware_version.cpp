@@ -1,4 +1,4 @@
-#include "examples/firmware_version.hpp"
+#include "examples/embedded/firmware_version.hpp"
 #include <cstdio>
 
 int main() {

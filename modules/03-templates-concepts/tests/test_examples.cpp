@@ -1,5 +1,5 @@
 #include <doctest/doctest.h>
-#include "examples/register_concept.hpp"
+#include "examples/embedded/register_concept.hpp"
 
 static_assert(m03::mask(0U, 2U) == 0b101U);
 static_assert(!m03::RegisterAccess<int>);

@@ -1,4 +1,4 @@
-#include "examples/spsc_ring.hpp"
+#include "examples/embedded/spsc_ring.hpp"
 #include <cstdio>
 #include <thread>
 

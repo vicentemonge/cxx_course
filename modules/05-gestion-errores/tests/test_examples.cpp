@@ -1,5 +1,5 @@
 #include <doctest/doctest.h>
-#include "examples/expected_driver.hpp"
+#include "examples/embedded/expected_driver.hpp"
 
 TEST_CASE("bring_up encadena con and_then") {
     m05::Sensor ok;

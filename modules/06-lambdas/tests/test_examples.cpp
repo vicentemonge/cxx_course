@@ -1,5 +1,5 @@
 #include <doctest/doctest.h>
-#include "examples/event_dispatcher.hpp"
+#include "examples/embedded/event_dispatcher.hpp"
 
 TEST_CASE("Dispatcher invoca todas las suscripciones") {
     int n = 0;

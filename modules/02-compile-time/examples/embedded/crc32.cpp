@@ -1,4 +1,4 @@
-#include "examples/crc32.hpp"
+#include "examples/embedded/crc32.hpp"
 #include <cstdio>
 
 // Calculado en compilación: el valor está en el binario como constante.

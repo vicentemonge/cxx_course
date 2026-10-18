@@ -1,4 +1,4 @@
-#include "examples/adc_pipeline.hpp"
+#include "examples/embedded/adc_pipeline.hpp"
 #include <array>
 #include <cstdio>
 

@@ -1,5 +1,5 @@
 #include <doctest/doctest.h>
-#include "examples/static_logger.hpp"
+#include "examples/embedded/static_logger.hpp"
 #include <string>
 
 TEST_CASE("StaticLogger formatea y trunca sin heap") {
