@@ -8,6 +8,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 option(COURSE_BUILD_TESTS "Compilar tests (solo host)" ON)
 option(COURSE_ENABLE_CLANG_TIDY "Ejecutar clang-tidy al compilar" OFF)
+option(COURSE_BUILD_FUZZERS "Compilar fuzzers libFuzzer (requiere Clang)" OFF)
 
 include(cmake/warnings.cmake)
 include(cmake/course.cmake)
@@ -44,7 +45,15 @@ set(COURSE_MODULES
   10-coroutines
   11-format-chrono-io
   13-embedded
+  15-ub-seguridad
+  16-diseno-apis
+  17-rendimiento
+  18-calidad
 )
 foreach(m IN LISTS COURSE_MODULES)
   add_subdirectory(modules/${m})
 endforeach()
+
+if(COURSE_BUILD_FUZZERS)
+  add_subdirectory(fuzz)
+endif()

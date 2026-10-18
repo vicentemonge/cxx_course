@@ -14,6 +14,8 @@ jobs:
             cxx: g++-14
           - preset: host-clang
             cxx: clang++-19
+          - preset: host-sanitizers
+            cxx: g++-14
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
@@ -24,6 +26,23 @@ jobs:
       - run: cmake --preset ${{ matrix.preset }} -DCMAKE_CXX_COMPILER=${{ matrix.cxx }}
       - run: cmake --build --preset ${{ matrix.preset }}
       - run: ctest --preset ${{ matrix.preset }}
+
+  fuzz:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Dependencias
+        run: sudo apt-get update && sudo apt-get install -y ninja-build clang-19
+      - run: cmake --preset host-clang -DCMAKE_CXX_COMPILER=clang++-19 -DCOURSE_BUILD_FUZZERS=ON -DCOURSE_BUILD_TESTS=OFF
+      - run: cmake --build --preset host-clang --target fuzz_frame_parser
+      - run: ./build/host-clang/fuzz/fuzz_frame_parser -max_total_time=60 -rss_limit_mb=512
+
+  docs:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Los README generados están al día con tools/course_data.py
+        run: python3 tools/gen_docs.py && git diff --exit-code
 
   arm:
     runs-on: ubuntu-24.04
