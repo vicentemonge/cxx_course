@@ -9,17 +9,19 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        preset: [host-gcc, host-clang]
+        include:
+          - preset: host-gcc
+            cxx: g++-14
+          - preset: host-clang
+            cxx: clang++-19
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - name: Dependencias
         run: sudo apt-get update && sudo apt-get install -y ninja-build g++-14 clang-19
-      - name: Seleccionar compiladores
-        run: |
-          sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-14 100
-          sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-19 100
-      - run: cmake --preset ${{ matrix.preset }}
+      # Compilador explícito: el runner trae /usr/bin/clang++ -> clang 18, cuyo
+      # __cpp_concepts no habilita <expected> en libstdc++.
+      - run: cmake --preset ${{ matrix.preset }} -DCMAKE_CXX_COMPILER=${{ matrix.cxx }}
       - run: cmake --build --preset ${{ matrix.preset }}
       - run: ctest --preset ${{ matrix.preset }}
 
