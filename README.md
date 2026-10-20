@@ -56,6 +56,7 @@ Cada punto del temario lleva tags que permiten seguir un tema a través del curs
 
 Índice completo, matriz módulo × tema y búsqueda por tag en [`docs/TAGS.md`](docs/TAGS.md).
 Glosario de términos en [`docs/GLOSARIO.md`](docs/GLOSARIO.md).
+Contenido pendiente de incluir en [`docs/PENDIENTE.md`](docs/PENDIENTE.md).
 
 ## Entrevistas simuladas
 
@@ -68,7 +69,7 @@ Glosario de términos en [`docs/GLOSARIO.md`](docs/GLOSARIO.md).
 ```
 cmake/              toolchain ARM, warnings y helper course_module()
 common/             utilidades compartidas (banco de registros simulado)
-docs/               TAGS.md (generado), GLOSARIO.md, notas/ por módulo
+docs/               TAGS.md (generado), GLOSARIO.md, PENDIENTE.md, notas/ por módulo
 tools/              course_data.py (temario, fuente única) y gen_docs.py
 modules/NN-tema/
   README.md         generado: temario, ejercicio, preguntas, conexiones
