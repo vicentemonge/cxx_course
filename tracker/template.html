@@ -1,0 +1,454 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Progreso — C++ moderno</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --paper: #F5F7FA; --surface: #FFFFFF; --ink: #172033; --muted: #5B6577; --rule: #DCE1EA;
+  --accent: #2747A8; --accent-soft: #E3E9F8; --ok: #2F7D4E; --cond: #A86A12; --no: #B03A3A;
+  --track: #CBD3E1;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0F1522; --surface: #172033; --ink: #E6EAF2; --muted: #98A2B5; --rule: #2A3448;
+    --accent: #8FA8FF; --accent-soft: #1F2C4D; --ok: #6CC08B; --cond: #E0A64A; --no: #E07A7A;
+    --track: #33405A;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0F1522; --surface: #172033; --ink: #E6EAF2; --muted: #98A2B5; --rule: #2A3448;
+  --accent: #8FA8FF; --accent-soft: #1F2C4D; --ok: #6CC08B; --cond: #E0A64A; --no: #E07A7A;
+  --track: #33405A;
+  color-scheme: dark;
+}
+:root { box-sizing: border-box; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+*, *::before, *::after { box-sizing: inherit; }
+body {
+  margin: 0; background: var(--paper); color: var(--ink);
+  font: 400 1rem/1.5 "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  -webkit-text-size-adjust: 100%;
+}
+code, .tag { font-family: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace; }
+code { font-size: .88em; background: var(--accent-soft); padding: .05em .3em; border-radius: 3px; }
+a { color: var(--accent); }
+main { max-width: 46rem; margin: 0 auto; padding: 1.5rem 1rem 4rem; }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+header h1 { font-size: 1.6rem; line-height: 1.2; font-weight: 600; margin: 0 0 .35rem; letter-spacing: -.01em; }
+.summary { margin: 0; color: var(--muted); }
+.summary strong { color: var(--ink); font-weight: 600; }
+.sync { font-size: .82rem; color: var(--muted); margin: .4rem 0 0; min-height: 1.2em; }
+
+/* Recorrido: los 18 módulos en orden recomendado */
+.route { margin: 1.5rem -1rem 0; padding: .5rem 1rem 1rem; overflow-x: auto; scrollbar-width: thin; }
+.route ol { list-style: none; margin: 0; padding: 0; display: flex; align-items: flex-start; gap: 0; width: max-content; }
+.route li { display: flex; align-items: center; }
+.route li + li::before { content: ""; width: 14px; height: 2px; background: var(--track); margin-top: -1.1rem; }
+.route li.done + li::before, .route li.done::before { background: var(--accent); }
+.stop {
+  display: flex; flex-direction: column; align-items: center; gap: .3rem; border: 0; background: none;
+  padding: 0; cursor: pointer; width: 2.75rem;
+}
+.ring {
+  --p: 0; width: 2.4rem; height: 2.4rem; border-radius: 50%; display: grid; place-items: center;
+  background: conic-gradient(var(--accent) calc(var(--p) * 1%), var(--track) 0);
+}
+.ring span {
+  width: 1.95rem; height: 1.95rem; border-radius: 50%; background: var(--paper); display: grid; place-items: center;
+  font-size: .8rem; font-weight: 600; font-variant-numeric: tabular-nums;
+}
+.stop.full .ring span { background: var(--accent); color: var(--paper); }
+.stop small { font-size: .68rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+/* Filtros por tag */
+.filters { margin-top: 1rem; }
+.filters h2, section > h2 { font-size: 1rem; font-weight: 600; margin: 1.75rem 0 .6rem; }
+.chips { display: flex; flex-wrap: wrap; gap: .4rem; }
+.chip {
+  border: 1px solid var(--rule); background: var(--surface); border-radius: 999px; padding: .25rem .65rem;
+  font-size: .8rem; cursor: pointer; display: inline-flex; gap: .4rem; align-items: baseline;
+}
+.chip .pct { color: var(--muted); font-variant-numeric: tabular-nums; font-family: "IBM Plex Sans", sans-serif; }
+.chip[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
+.chip[aria-pressed="true"] .pct { color: inherit; }
+.filter-note { font-size: .85rem; color: var(--muted); margin: .6rem 0 0; }
+.filter-note button { border: 0; background: none; color: var(--accent); padding: 0; cursor: pointer; text-decoration: underline; }
+
+/* Módulos */
+.module { background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; margin-top: .6rem; }
+.module > summary {
+  list-style: none; cursor: pointer; padding: .85rem 1rem; display: grid;
+  grid-template-columns: 2rem 1fr auto; gap: .2rem .6rem; align-items: baseline;
+}
+.module > summary::-webkit-details-marker { display: none; }
+.module .num { font-weight: 600; color: var(--accent); font-variant-numeric: tabular-nums; }
+.module .title { font-weight: 500; line-height: 1.3; }
+.module .count { font-size: .82rem; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.module .bar { grid-column: 2 / 4; height: 3px; background: var(--track); border-radius: 2px; overflow: hidden; margin-top: .35rem; }
+.module .bar i { display: block; height: 100%; background: var(--accent); width: 0; transition: width .25s ease; }
+.module[open] > summary { border-bottom: 1px solid var(--rule); }
+.body { padding: .25rem 1rem 1rem; }
+.intro { color: var(--muted); font-size: .92rem; margin: .75rem 0 0; max-width: 65ch; }
+.body h3 { font-size: .9rem; font-weight: 600; margin: 1.25rem 0 .25rem; }
+.repo-link { font-size: .85rem; margin: 1rem 0 0; }
+
+ul.check { list-style: none; margin: 0; padding: 0; }
+ul.check li { padding: .35rem 0; border-top: 1px solid var(--rule); }
+ul.check li:first-child { border-top: 0; }
+ul.check li.head { font-weight: 500; padding-top: .7rem; }
+ul.check li[data-d="1"] { padding-left: 1.6rem; }
+ul.check li[data-d="2"] { padding-left: 3.2rem; }
+ul.check li.head[data-d="1"] { padding-left: 1.6rem; }
+label.item { display: grid; grid-template-columns: 1.4rem 1fr; gap: .4rem; align-items: start; cursor: pointer; }
+label.item input { width: 1.05rem; height: 1.05rem; margin: .2rem 0 0; accent-color: var(--accent); cursor: pointer; }
+label.item input:checked + .txt > .t { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--track); }
+.meta { display: flex; flex-wrap: wrap; gap: .25rem .45rem; margin-top: .15rem; align-items: baseline; }
+.tag { font-size: .72rem; color: var(--muted); }
+.tag.emb-ok { color: var(--ok); }
+.tag.emb-cond { color: var(--cond); }
+.tag.emb-no { color: var(--no); }
+.note { font-size: .82rem; color: var(--muted); font-style: italic; }
+.head .meta { font-weight: 400; }
+
+/* Entrevista */
+.round { display: grid; grid-template-columns: 1fr auto; gap: .5rem; align-items: center; padding: .55rem 0; border-top: 1px solid var(--rule); }
+.round:first-of-type { border-top: 0; }
+.scores { display: inline-flex; border: 1px solid var(--rule); border-radius: 6px; overflow: hidden; }
+.scores button { border: 0; background: var(--surface); width: 2.1rem; height: 2rem; cursor: pointer; font-variant-numeric: tabular-nums; }
+.scores button + button { border-left: 1px solid var(--rule); }
+.scores button[aria-pressed="true"] { background: var(--accent); color: var(--paper); font-weight: 600; }
+.verdict { margin: .9rem 0 0; font-size: .92rem; }
+.panel { background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; padding: .5rem 1rem 1rem; }
+.panel p.help { color: var(--muted); font-size: .88rem; margin: .5rem 0 .25rem; }
+footer { margin-top: 2.5rem; font-size: .82rem; color: var(--muted); }
+footer button { border: 1px solid var(--rule); background: var(--surface); border-radius: 6px; padding: .3rem .7rem; cursor: pointer; }
+@media (prefers-reduced-motion: reduce) { .module .bar i { transition: none; } }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>C++ moderno, de C++11 a C++26</h1>
+    <p class="summary" id="summary">Cargando…</p>
+    <p class="sync" id="sync" role="status"></p>
+  </header>
+
+  <nav class="route" aria-label="Módulos en orden recomendado"><ol id="route"></ol></nav>
+
+  <section class="filters" aria-labelledby="f-title">
+    <h2 id="f-title">Seguir un tema</h2>
+    <div class="chips" id="chips-core"></div>
+    <div class="chips" id="chips-emb" style="margin-top:.5rem"></div>
+    <p class="filter-note" id="filter-note" hidden></p>
+  </section>
+
+  <section aria-labelledby="m-title">
+    <h2 id="m-title">Módulos</h2>
+    <div id="modules"></div>
+  </section>
+
+  <section aria-labelledby="i-title">
+    <h2 id="i-title">Entrevista simulada</h2>
+    <div class="panel">
+      <p class="help">Puntúa cada ronda de 1 a 4 al terminarla, con la rúbrica de la entrevista.</p>
+      <div id="rounds"></div>
+      <p class="verdict" id="verdict"></p>
+    </div>
+  </section>
+
+  <footer>
+    <p>Generado desde <code>tools/course_data.py</code> con <code>tools/gen_tracker.py</code>.
+      <a id="repo-link" href="#">Repositorio del curso</a>.</p>
+    <p><button type="button" id="expand">Desplegar todo</button></p>
+  </footer>
+</main>
+
+<script>
+"use strict";
+const COURSE = /*__COURSE_DATA__*/null;
+const LS_KEY = "cxx-course-progress-v1";
+const EMB_CLASS = { "emb:ok": "emb-ok", "emb:cond": "emb-cond", "emb:no": "emb-no" };
+const EMB_ICON = { "emb:ok": "🟢", "emb:cond": "🟡", "emb:no": "🔴" };
+
+let state = { checked: {}, scores: {} };
+let filter = null;          // tag activo
+let db = null, docRef = null;
+let pending = null, writing = false, dirty = false;
+
+const byNum = Object.fromEntries(COURSE.modules.map(m => [m.n, m]));
+const ordered = COURSE.order.map(n => byNum[n]);
+
+// Puntos con hijos son encabezados, no casillas
+for (const m of COURSE.modules) {
+  m.items.forEach((it, i) => {
+    const next = m.items[i + 1];
+    it.head = !!next && next.d > it.d;
+  });
+}
+
+function esc(s) {
+  return s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+}
+function inline(s) {
+  return esc(s)
+    .replace(/`([^`]+)`/g, "<code>$1</code>")
+    .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+}
+
+function leaves(m) {
+  const out = m.items.filter(it => !it.head).map(it => ({ id: it.id, tags: it.tags }));
+  out.push({ id: m.exercise.id, tags: [] });
+  for (const q of m.questions) out.push({ id: q.id, tags: [] });
+  return out;
+}
+function pct(done, total) { return total ? Math.round((done / total) * 100) : 0; }
+function isDone(id) { return !!state.checked[id]; }
+
+function tagStats(tag) {
+  let total = 0, done = 0;
+  for (const m of COURSE.modules) for (const it of m.items) {
+    if (!it.head && it.tags.includes(tag)) { total++; if (isDone(it.id)) done++; }
+  }
+  return { total, done };
+}
+
+// ---------------------------------------------------------------- render
+function renderSummary() {
+  let total = 0, done = 0;
+  for (const m of COURSE.modules) for (const l of leaves(m)) { total++; if (isDone(l.id)) done++; }
+  const mods = ordered.filter(m => leaves(m).every(l => isDone(l.id))).length;
+  document.getElementById("summary").innerHTML =
+    `Llevas <strong>${done} de ${total}</strong> elementos (${pct(done, total)} %) y ` +
+    `<strong>${mods} de ${ordered.length}</strong> módulos completos.`;
+}
+
+function renderRoute() {
+  const ol = document.getElementById("route");
+  ol.innerHTML = ordered.map(m => {
+    const ls = leaves(m), d = ls.filter(l => isDone(l.id)).length, p = pct(d, ls.length);
+    return `<li class="${p === 100 ? "done" : ""}"><button type="button" class="stop ${p === 100 ? "full" : ""}"
+      data-go="${m.n}" aria-label="Módulo ${m.n}: ${esc(m.title)}, ${p} %">
+      <span class="ring" style="--p:${p}"><span>${m.n}</span></span><small>${p}%</small></button></li>`;
+  }).join("");
+}
+
+function renderChips() {
+  const chip = (tag, label) => {
+    const s = tagStats(tag);
+    return `<button type="button" class="chip tag" data-tag="${tag}" aria-pressed="${filter === tag}"
+      title="${esc((COURSE.core[tag] || COURSE.emb[tag]) || "")}">${label}<span class="pct">${pct(s.done, s.total)} %</span></button>`;
+  };
+  document.getElementById("chips-core").innerHTML = Object.keys(COURSE.core).map(t => chip(t, "@" + t)).join("");
+  document.getElementById("chips-emb").innerHTML = Object.keys(COURSE.emb).map(t => chip(t, EMB_ICON[t] + " @" + t)).join("");
+  const note = document.getElementById("filter-note");
+  if (filter) {
+    const s = tagStats(filter);
+    note.hidden = false;
+    note.innerHTML = `Mostrando los ${s.total} puntos con <code>@${esc(filter)}</code>: ${s.done} hechos. ` +
+      `<button type="button" data-clear>Quitar filtro</button>`;
+  } else {
+    note.hidden = true;
+  }
+}
+
+function itemHtml(it) {
+  const tags = it.tags.map(t => `<span class="tag ${EMB_CLASS[t] || ""}">${EMB_ICON[t] ? EMB_ICON[t] + " " : ""}@${esc(t)}</span>`).join("");
+  const note = it.note ? `<span class="note">${inline(it.note)}</span>` : "";
+  const meta = tags || note ? `<span class="meta">${tags}${note}</span>` : "";
+  if (it.head) {
+    return `<li class="head" data-d="${it.d}"><span class="t">${inline(it.text)}</span>${meta}</li>`;
+  }
+  return `<li data-d="${it.d}"><label class="item"><input type="checkbox" data-id="${it.id}" ${isDone(it.id) ? "checked" : ""}>
+    <span class="txt"><span class="t">${inline(it.text)}</span>${meta}</span></label></li>`;
+}
+function simpleItem(id, text) {
+  return `<li><label class="item"><input type="checkbox" data-id="${id}" ${isDone(id) ? "checked" : ""}>
+    <span class="txt"><span class="t">${inline(text)}</span></span></label></li>`;
+}
+
+function visibleItems(m) {
+  if (!filter) return m.items;
+  // un encabezado se muestra si algún descendiente coincide
+  const keep = new Set();
+  m.items.forEach((it, i) => {
+    if (it.head || !it.tags.includes(filter)) return;
+    keep.add(i);
+    for (let j = i - 1, d = it.d; j >= 0 && d > 0; j--) {
+      if (m.items[j].d < d) { keep.add(j); d = m.items[j].d; }
+    }
+  });
+  return m.items.filter((_, i) => keep.has(i));
+}
+
+function renderModules() {
+  const host = document.getElementById("modules");
+  const open = new Set([...host.querySelectorAll("details[open]")].map(d => d.dataset.n));
+  host.innerHTML = ordered.map(m => {
+    const items = visibleItems(m);
+    if (filter && !items.length) return "";
+    const ls = leaves(m), d = ls.filter(l => isDone(l.id)).length;
+    const extra = filter ? "" : `
+      <h3>Ejercicio</h3><ul class="check">${simpleItem(m.exercise.id, m.exercise.text)}</ul>
+      <h3>Preguntas de control</h3><ul class="check">${m.questions.map(q => simpleItem(q.id, q.text)).join("")}</ul>`;
+    return `<details class="module" id="m${m.n}" data-n="${m.n}" ${open.has(m.n) || filter ? "open" : ""}>
+      <summary><span class="num">${m.n}</span><span class="title">${esc(m.title)}</span>
+        <span class="count">${d}/${ls.length}</span><span class="bar"><i style="width:${pct(d, ls.length)}%"></i></span></summary>
+      <div class="body">
+        ${filter ? "" : `<p class="intro">${inline(m.intro)}</p>`}
+        <h3>Temario</h3><ul class="check">${items.map(itemHtml).join("")}</ul>
+        ${extra}
+        <p class="repo-link"><a href="${COURSE.repo}/tree/main/modules/${m.slug}" target="_blank" rel="noopener">Abrir el módulo en GitHub</a></p>
+      </div></details>`;
+  }).join("");
+}
+
+function renderRounds() {
+  document.getElementById("rounds").innerHTML = COURSE.rounds.map((r, i) => {
+    const s = state.scores[r.id] || 0;
+    const btns = [1, 2, 3, 4].map(v =>
+      `<button type="button" data-round="${r.id}" data-score="${v}" aria-pressed="${s === v}" aria-label="${v}">${v}</button>`).join("");
+    return `<div class="round"><span>${i}. ${esc(r.text)}</span><span class="scores" role="group" aria-label="Puntuación de ${esc(r.text)}">${btns}</span></div>`;
+  }).join("");
+  const vals = COURSE.rounds.map(r => state.scores[r.id]).filter(Boolean);
+  const v = document.getElementById("verdict");
+  if (!vals.length) { v.textContent = "Sin rondas puntuadas todavía."; return; }
+  const avg = vals.reduce((a, b) => a + b, 0) / vals.length;
+  const min = Math.min(...vals), has4 = vals.includes(4);
+  let decision;
+  const faltan = COURSE.rounds.length - vals.length;
+  const rondas = n => `${n} ${n === 1 ? "ronda" : "rondas"}`;
+  if (faltan) decision = `${faltan === 1 ? "falta" : "faltan"} ${rondas(faltan)}`;
+  else if (avg >= 3 && min >= 2 && has4) decision = "contratación según la rúbrica, salvo vetos";
+  else decision = "por debajo del listón de contratación";
+  v.textContent = `Media ${avg.toFixed(2).replace(".", ",")} con ${rondas(vals.length)}: ${decision}.`;
+}
+
+function renderAll() { renderSummary(); renderRoute(); renderChips(); renderModules(); renderRounds(); }
+function renderProgress() { renderSummary(); renderRoute(); renderChips(); renderRounds();
+  // actualizar contadores de módulos sin redibujar (conserva foco y scroll)
+  for (const m of ordered) {
+    const el = document.getElementById("m" + m.n); if (!el) continue;
+    const ls = leaves(m), d = ls.filter(l => isDone(l.id)).length;
+    el.querySelector(".count").textContent = `${d}/${ls.length}`;
+    el.querySelector(".bar i").style.width = pct(d, ls.length) + "%";
+  }
+}
+
+// ---------------------------------------------------------------- persistencia
+function setSync(msg) { document.getElementById("sync").textContent = msg; }
+function saveLocal() { try { localStorage.setItem(LS_KEY, JSON.stringify(state)); } catch (_) {} }
+function loadLocal() {
+  try { const s = JSON.parse(localStorage.getItem(LS_KEY) || "null"); if (s && s.checked) return s; } catch (_) {}
+  return null;
+}
+function normalize(d) {
+  return { checked: (d && typeof d.checked === "object" && d.checked) || {},
+           scores: (d && typeof d.scores === "object" && d.scores) || {} };
+}
+
+function schedule() {
+  saveLocal();
+  if (!docRef) return;
+  dirty = true;
+  clearTimeout(pending);
+  pending = setTimeout(flush, 600);
+}
+async function flush() {
+  if (!docRef || writing || !dirty) return;
+  writing = true; dirty = false;
+  setSync("Guardando…");
+  try {
+    await docRef.set({ checked: state.checked, scores: state.scores, updated: Date.now() });
+    setSync("Guardado y sincronizado entre tus dispositivos.");
+  } catch (e) {
+    setSync(e && e.code === "invalid_argument"
+      ? "No tienes permiso para guardar aquí: el progreso queda solo en este navegador."
+      : "No se pudo sincronizar; se reintentará con el próximo cambio.");
+  } finally {
+    writing = false;
+    if (dirty) flush();
+  }
+}
+
+async function connect() {
+  if (!window.claude || typeof window.claude.use !== "function") {
+    setSync("Guardado solo en este navegador.");
+    return;
+  }
+  const [dbNs, user] = await Promise.all([window.claude.use("db"), window.claude.use("user")]);
+  const id = user ? await user.id() : null;
+  if (!dbNs || !id) { setSync("Guardado solo en este navegador: inicia sesión para sincronizar."); return; }
+  db = dbNs;
+  docRef = db.doc(`data/users/${id}/progreso`);
+  try {
+    const snap = await docRef.get();
+    if (snap.exists) {
+      state = normalize(snap.data());
+      saveLocal();
+      renderAll();
+    } else if (Object.keys(state.checked).length || Object.keys(state.scores).length) {
+      dirty = true; flush();   // primer uso: subir lo que hubiera en este navegador
+    }
+    setSync("Sincronizado entre tus dispositivos.");
+    docRef.onSnapshot(s => {
+      if (!s.exists || writing || dirty) return;
+      const next = normalize(s.data());
+      if (JSON.stringify(next) === JSON.stringify(state)) return;
+      state = next; saveLocal(); renderProgress(); syncChecks();
+    }, () => setSync("Sincronización en pausa; los cambios se guardan en este navegador."));
+  } catch (_) {
+    docRef = null;
+    setSync("No se pudo conectar; guardado solo en este navegador.");
+  }
+}
+function syncChecks() {
+  for (const cb of document.querySelectorAll("input[data-id]")) cb.checked = isDone(cb.dataset.id);
+}
+
+// ---------------------------------------------------------------- eventos
+document.addEventListener("change", e => {
+  const cb = e.target.closest("input[data-id]");
+  if (!cb) return;
+  if (cb.checked) state.checked[cb.dataset.id] = Date.now(); else delete state.checked[cb.dataset.id];
+  renderProgress(); schedule();
+});
+document.addEventListener("click", e => {
+  const go = e.target.closest("[data-go]");
+  if (go) {
+    const el = document.getElementById("m" + go.dataset.go);
+    if (el) { el.open = true; el.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" }); }
+    return;
+  }
+  const chip = e.target.closest("[data-tag]");
+  if (chip) { filter = filter === chip.dataset.tag ? null : chip.dataset.tag; renderChips(); renderModules(); return; }
+  if (e.target.closest("[data-clear]")) { filter = null; renderChips(); renderModules(); return; }
+  const sc = e.target.closest("[data-score]");
+  if (sc) {
+    const r = sc.dataset.round, v = Number(sc.dataset.score);
+    if (state.scores[r] === v) delete state.scores[r]; else state.scores[r] = v;
+    renderRounds(); schedule(); return;
+  }
+  if (e.target.id === "expand") {
+    const all = [...document.querySelectorAll("details.module")];
+    const openAll = all.some(d => !d.open);
+    all.forEach(d => { d.open = openAll; });
+    e.target.textContent = openAll ? "Plegar todo" : "Desplegar todo";
+  }
+});
+
+document.getElementById("repo-link").href = COURSE.repo;
+state = normalize(loadLocal());
+renderAll();
+connect();
+</script>
+</body>
+</html>

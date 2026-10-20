@@ -41,8 +41,8 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
-      - name: Los README generados están al día con tools/course_data.py
-        run: python3 tools/gen_docs.py && git diff --exit-code
+      - name: README y tracker generados están al día con tools/course_data.py
+        run: python3 tools/gen_docs.py && python3 tools/gen_tracker.py && git diff --exit-code
 
   arm:
     runs-on: ubuntu-24.04

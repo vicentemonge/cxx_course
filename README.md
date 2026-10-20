@@ -58,6 +58,12 @@ Cada punto del temario lleva tags que permiten seguir un tema a través del curs
 Glosario de términos en [`docs/GLOSARIO.md`](docs/GLOSARIO.md).
 Contenido pendiente de incluir en [`docs/PENDIENTE.md`](docs/PENDIENTE.md).
 
+## Seguimiento de progreso
+
+[Página de seguimiento](https://claude.ai/artifact/P1LjwBkDY2Vh3dJUeYwszH) (privada, sincronizada entre dispositivos):
+casillas por punto del temario, progreso por módulo y por tag, y puntuación de la entrevista simulada.
+Se genera con `python3 tools/gen_tracker.py`; detalles en [`tracker/`](tracker).
+
 ## Entrevistas simuladas
 
 - [Senior C++ Engineer — Firefox Platform (Mozilla, ficticia)](entrevistas/mozilla-senior-cpp):
@@ -70,7 +76,8 @@ Contenido pendiente de incluir en [`docs/PENDIENTE.md`](docs/PENDIENTE.md).
 cmake/              toolchain ARM, warnings y helper course_module()
 common/             utilidades compartidas (banco de registros simulado)
 docs/               TAGS.md (generado), GLOSARIO.md, PENDIENTE.md, notas/ por módulo
-tools/              course_data.py (temario, fuente única) y gen_docs.py
+tools/              course_data.py (temario, fuente única), gen_docs.py y gen_tracker.py
+tracker/            página de seguimiento de progreso (generada)
 modules/NN-tema/
   README.md         generado: temario, ejercicio, preguntas, conexiones
   examples/lang/    ejemplos de conocimiento del lenguaje
@@ -104,6 +111,7 @@ python3 tools/gen_docs.py
 ```
 
 regenera los README de los módulos, `docs/TAGS.md` y la tabla de este README.
+`python3 tools/gen_tracker.py` regenera la página de seguimiento.
 
 ## Método
 

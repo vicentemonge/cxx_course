@@ -1,0 +1,454 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Progreso — C++ moderno</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --paper: #F5F7FA; --surface: #FFFFFF; --ink: #172033; --muted: #5B6577; --rule: #DCE1EA;
+  --accent: #2747A8; --accent-soft: #E3E9F8; --ok: #2F7D4E; --cond: #A86A12; --no: #B03A3A;
+  --track: #CBD3E1;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0F1522; --surface: #172033; --ink: #E6EAF2; --muted: #98A2B5; --rule: #2A3448;
+    --accent: #8FA8FF; --accent-soft: #1F2C4D; --ok: #6CC08B; --cond: #E0A64A; --no: #E07A7A;
+    --track: #33405A;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0F1522; --surface: #172033; --ink: #E6EAF2; --muted: #98A2B5; --rule: #2A3448;
+  --accent: #8FA8FF; --accent-soft: #1F2C4D; --ok: #6CC08B; --cond: #E0A64A; --no: #E07A7A;
+  --track: #33405A;
+  color-scheme: dark;
+}
+:root { box-sizing: border-box; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+*, *::before, *::after { box-sizing: inherit; }
+body {
+  margin: 0; background: var(--paper); color: var(--ink);
+  font: 400 1rem/1.5 "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  -webkit-text-size-adjust: 100%;
+}
+code, .tag { font-family: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace; }
+code { font-size: .88em; background: var(--accent-soft); padding: .05em .3em; border-radius: 3px; }
+a { color: var(--accent); }
+main { max-width: 46rem; margin: 0 auto; padding: 1.5rem 1rem 4rem; }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+header h1 { font-size: 1.6rem; line-height: 1.2; font-weight: 600; margin: 0 0 .35rem; letter-spacing: -.01em; }
+.summary { margin: 0; color: var(--muted); }
+.summary strong { color: var(--ink); font-weight: 600; }
+.sync { font-size: .82rem; color: var(--muted); margin: .4rem 0 0; min-height: 1.2em; }
+
+/* Recorrido: los 18 módulos en orden recomendado */
+.route { margin: 1.5rem -1rem 0; padding: .5rem 1rem 1rem; overflow-x: auto; scrollbar-width: thin; }
+.route ol { list-style: none; margin: 0; padding: 0; display: flex; align-items: flex-start; gap: 0; width: max-content; }
+.route li { display: flex; align-items: center; }
+.route li + li::before { content: ""; width: 14px; height: 2px; background: var(--track); margin-top: -1.1rem; }
+.route li.done + li::before, .route li.done::before { background: var(--accent); }
+.stop {
+  display: flex; flex-direction: column; align-items: center; gap: .3rem; border: 0; background: none;
+  padding: 0; cursor: pointer; width: 2.75rem;
+}
+.ring {
+  --p: 0; width: 2.4rem; height: 2.4rem; border-radius: 50%; display: grid; place-items: center;
+  background: conic-gradient(var(--accent) calc(var(--p) * 1%), var(--track) 0);
+}
+.ring span {
+  width: 1.95rem; height: 1.95rem; border-radius: 50%; background: var(--paper); display: grid; place-items: center;
+  font-size: .8rem; font-weight: 600; font-variant-numeric: tabular-nums;
+}
+.stop.full .ring span { background: var(--accent); color: var(--paper); }
+.stop small { font-size: .68rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+/* Filtros por tag */
+.filters { margin-top: 1rem; }
+.filters h2, section > h2 { font-size: 1rem; font-weight: 600; margin: 1.75rem 0 .6rem; }
+.chips { display: flex; flex-wrap: wrap; gap: .4rem; }
+.chip {
+  border: 1px solid var(--rule); background: var(--surface); border-radius: 999px; padding: .25rem .65rem;
+  font-size: .8rem; cursor: pointer; display: inline-flex; gap: .4rem; align-items: baseline;
+}
+.chip .pct { color: var(--muted); font-variant-numeric: tabular-nums; font-family: "IBM Plex Sans", sans-serif; }
+.chip[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
+.chip[aria-pressed="true"] .pct { color: inherit; }
+.filter-note { font-size: .85rem; color: var(--muted); margin: .6rem 0 0; }
+.filter-note button { border: 0; background: none; color: var(--accent); padding: 0; cursor: pointer; text-decoration: underline; }
+
+/* Módulos */
+.module { background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; margin-top: .6rem; }
+.module > summary {
+  list-style: none; cursor: pointer; padding: .85rem 1rem; display: grid;
+  grid-template-columns: 2rem 1fr auto; gap: .2rem .6rem; align-items: baseline;
+}
+.module > summary::-webkit-details-marker { display: none; }
+.module .num { font-weight: 600; color: var(--accent); font-variant-numeric: tabular-nums; }
+.module .title { font-weight: 500; line-height: 1.3; }
+.module .count { font-size: .82rem; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.module .bar { grid-column: 2 / 4; height: 3px; background: var(--track); border-radius: 2px; overflow: hidden; margin-top: .35rem; }
+.module .bar i { display: block; height: 100%; background: var(--accent); width: 0; transition: width .25s ease; }
+.module[open] > summary { border-bottom: 1px solid var(--rule); }
+.body { padding: .25rem 1rem 1rem; }
+.intro { color: var(--muted); font-size: .92rem; margin: .75rem 0 0; max-width: 65ch; }
+.body h3 { font-size: .9rem; font-weight: 600; margin: 1.25rem 0 .25rem; }
+.repo-link { font-size: .85rem; margin: 1rem 0 0; }
+
+ul.check { list-style: none; margin: 0; padding: 0; }
+ul.check li { padding: .35rem 0; border-top: 1px solid var(--rule); }
+ul.check li:first-child { border-top: 0; }
+ul.check li.head { font-weight: 500; padding-top: .7rem; }
+ul.check li[data-d="1"] { padding-left: 1.6rem; }
+ul.check li[data-d="2"] { padding-left: 3.2rem; }
+ul.check li.head[data-d="1"] { padding-left: 1.6rem; }
+label.item { display: grid; grid-template-columns: 1.4rem 1fr; gap: .4rem; align-items: start; cursor: pointer; }
+label.item input { width: 1.05rem; height: 1.05rem; margin: .2rem 0 0; accent-color: var(--accent); cursor: pointer; }
+label.item input:checked + .txt > .t { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--track); }
+.meta { display: flex; flex-wrap: wrap; gap: .25rem .45rem; margin-top: .15rem; align-items: baseline; }
+.tag { font-size: .72rem; color: var(--muted); }
+.tag.emb-ok { color: var(--ok); }
+.tag.emb-cond { color: var(--cond); }
+.tag.emb-no { color: var(--no); }
+.note { font-size: .82rem; color: var(--muted); font-style: italic; }
+.head .meta { font-weight: 400; }
+
+/* Entrevista */
+.round { display: grid; grid-template-columns: 1fr auto; gap: .5rem; align-items: center; padding: .55rem 0; border-top: 1px solid var(--rule); }
+.round:first-of-type { border-top: 0; }
+.scores { display: inline-flex; border: 1px solid var(--rule); border-radius: 6px; overflow: hidden; }
+.scores button { border: 0; background: var(--surface); width: 2.1rem; height: 2rem; cursor: pointer; font-variant-numeric: tabular-nums; }
+.scores button + button { border-left: 1px solid var(--rule); }
+.scores button[aria-pressed="true"] { background: var(--accent); color: var(--paper); font-weight: 600; }
+.verdict { margin: .9rem 0 0; font-size: .92rem; }
+.panel { background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; padding: .5rem 1rem 1rem; }
+.panel p.help { color: var(--muted); font-size: .88rem; margin: .5rem 0 .25rem; }
+footer { margin-top: 2.5rem; font-size: .82rem; color: var(--muted); }
+footer button { border: 1px solid var(--rule); background: var(--surface); border-radius: 6px; padding: .3rem .7rem; cursor: pointer; }
+@media (prefers-reduced-motion: reduce) { .module .bar i { transition: none; } }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>C++ moderno, de C++11 a C++26</h1>
+    <p class="summary" id="summary">Cargando…</p>
+    <p class="sync" id="sync" role="status"></p>
+  </header>
+
+  <nav class="route" aria-label="Módulos en orden recomendado"><ol id="route"></ol></nav>
+
+  <section class="filters" aria-labelledby="f-title">
+    <h2 id="f-title">Seguir un tema</h2>
+    <div class="chips" id="chips-core"></div>
+    <div class="chips" id="chips-emb" style="margin-top:.5rem"></div>
+    <p class="filter-note" id="filter-note" hidden></p>
+  </section>
+
+  <section aria-labelledby="m-title">
+    <h2 id="m-title">Módulos</h2>
+    <div id="modules"></div>
+  </section>
+
+  <section aria-labelledby="i-title">
+    <h2 id="i-title">Entrevista simulada</h2>
+    <div class="panel">
+      <p class="help">Puntúa cada ronda de 1 a 4 al terminarla, con la rúbrica de la entrevista.</p>
+      <div id="rounds"></div>
+      <p class="verdict" id="verdict"></p>
+    </div>
+  </section>
+
+  <footer>
+    <p>Generado desde <code>tools/course_data.py</code> con <code>tools/gen_tracker.py</code>.
+      <a id="repo-link" href="#">Repositorio del curso</a>.</p>
+    <p><button type="button" id="expand">Desplegar todo</button></p>
+  </footer>
+</main>
+
+<script>
+"use strict";
+const COURSE = {"order":["01","15","18","02","03","04","05","08","06","07","16","09","17","13","11","10","12","14"],"core":{"lifetime":"Tiempo de vida, propiedad, RAII, dangling","value-sem":"Semántica de valor: copia, movimiento, categorías de valor","compile-time":"Cálculo y validación en compilación","generic":"Programación genérica: templates, concepts, deducción","type-design":"Diseño de tipos: tipos vocabulario, tipos fuertes, invariantes","errors":"Gestión de errores y contratos","functional":"Lambdas, invocables y composición","iteration":"Iteradores, ranges y algoritmos","concurrency":"Hilos, sincronización y paralelismo","memory-model":"Modelo de memoria, atomics y órdenes","async":"Coroutines y ejecución asíncrona","performance":"Rendimiento: coste de abstracciones, memoria, caché","safety":"Comportamiento indefinido, seguridad de memoria, hardening","abi":"Enlace, ODR, ABI, modelo de compilación y organización","interop":"Interoperabilidad con C, Rust y otras APIs","tooling":"Build, testing, sanitizers, análisis estático"},"emb":{"emb:ok":"Aporte en firmware: sin coste oculto o con beneficio claro","emb:cond":"Condicional: depende de heap, excepciones, RTTI, toolchain o tamaño de código","emb:no":"Descarte en bare-metal (sigue siendo válido en Linux embebido)"},"modules":[{"n":"01","slug":"01-fundamentos","title":"Fundamentos del C++ moderno","intro":"Base de C++11/14 sobre la que se construye todo. En una entrevista de nivel senior se da por supuesto: los fallos aquí (categorías de valor, reglas de miembros especiales) descartan candidatos antes de llegar a templates o concurrencia.","items":[{"id":"01-t1","ref":"1","d":0,"text":"Inicialización","note":null,"tags":[]},{"id":"01-t1.1","ref":"1.1","d":1,"text":"Llaves, *narrowing* y *most vexing parse* [11]","note":null,"tags":["type-design","emb:ok"]},{"id":"01-t1.2","ref":"1.2","d":1,"text":"`std::initializer_list` y su prioridad en la resolución de sobrecarga [11]","note":null,"tags":["generic"]},{"id":"01-t1.3","ref":"1.3","d":1,"text":"NSDMI [11/14], agregados [11→20], agregados con paréntesis [20]","note":null,"tags":["type-design","emb:ok"]},{"id":"01-t1.4","ref":"1.4","d":1,"text":"Inicialización por defecto, de valor y cero; variables sin inicializar","note":null,"tags":["safety","emb:ok"]},{"id":"01-t2","ref":"2","d":0,"text":"Deducción de tipos","note":null,"tags":[]},{"id":"01-t2.1","ref":"2.1","d":1,"text":"Reglas de deducción de templates como base de `auto` [11]","note":null,"tags":["generic"]},{"id":"01-t2.2","ref":"2.2","d":1,"text":"`auto`, `decltype`, `decltype(auto)`, *trailing return* [11/14]","note":null,"tags":["generic"]},{"id":"01-t2.3","ref":"2.3","d":1,"text":"Trampas: proxies (`vector<bool>`), `auto x{1}` [11 vs 17], referencias perdidas","note":null,"tags":["value-sem"]},{"id":"01-t3","ref":"3","d":0,"text":"Semántica de movimiento","note":null,"tags":[]},{"id":"01-t3.1","ref":"3.1","d":1,"text":"Categorías de valor: lvalue, prvalue, xvalue [11/17]","note":null,"tags":["value-sem"]},{"id":"01-t3.2","ref":"3.2","d":1,"text":"Forwarding references, colapso de referencias, `std::forward` [11]","note":null,"tags":["value-sem","generic"]},{"id":"01-t3.3","ref":"3.3","d":1,"text":"*Copy elision* garantizada [17], NRVO, movimiento implícito al retornar [20/23]","note":null,"tags":["value-sem","performance","emb:ok"]},{"id":"01-t3.4","ref":"3.4","d":1,"text":"`noexcept` en movimiento y su efecto en contenedores","note":null,"tags":["errors","performance"]},{"id":"01-t3.5","ref":"3.5","d":1,"text":"Estado “movido”: válido pero no especificado; diseñar el estado vacío","note":null,"tags":["lifetime"]},{"id":"01-t4","ref":"4","d":0,"text":"Miembros especiales y propiedad","note":null,"tags":[]},{"id":"01-t4.1","ref":"4.1","d":1,"text":"Reglas de generación implícita (tabla de Hinnant) y Rule of Zero/Five","note":null,"tags":["lifetime","value-sem","emb:ok"]},{"id":"01-t4.2","ref":"4.2","d":1,"text":"`= default`, `= delete`, constructores `explicit`, delegados y heredados [11]","note":null,"tags":["type-design"]},{"id":"01-t4.3","ref":"4.3","d":1,"text":"`std::unique_ptr` con *deleters* propios [11]","note":"sin heap si envuelve handles estáticos","tags":["lifetime","emb:ok"]},{"id":"01-t4.4","ref":"4.4","d":1,"text":"`shared_ptr`/`weak_ptr`, `make_shared`, coste del bloque de control","note":"heap y atomics","tags":["lifetime","performance","emb:cond"]},{"id":"01-t4.5","ref":"4.5","d":1,"text":"`make_unique` [14], `make_unique_for_overwrite` [20], `out_ptr`/`inout_ptr` [23]","note":null,"tags":["lifetime","interop"]},{"id":"01-t5","ref":"5","d":0,"text":"Mejoras básicas del lenguaje","note":null,"tags":[]},{"id":"01-t5.1","ref":"5.1","d":1,"text":"`enum class`, tipo subyacente [11], `using enum` [20], `to_underlying` [23]","note":null,"tags":["type-design","emb:ok"]},{"id":"01-t5.2","ref":"5.2","d":1,"text":"`nullptr`, `override`/`final`, alias con `using` [11]","note":null,"tags":["type-design","emb:ok"]},{"id":"01-t5.3","ref":"5.3","d":1,"text":"Raw strings, UDLs [11], literales binarios y separador `'` [14]","note":"UDLs para unidades físicas","tags":["type-design","emb:ok"]},{"id":"01-t5.4","ref":"5.4","d":1,"text":"`static_assert` [11/17], range-`for` [11/20]","note":null,"tags":["compile-time","emb:ok"]}],"exercise":{"id":"01-ex","text":"Envolver un handle de periférico (UART o SPI de la HAL) en una clase RAII movible y no copiable, con `enum class` para los modos de configuración."},"questions":[{"id":"01-q1","text":"¿Qué miembros especiales genera el compilador si declaras solo un destructor? ¿Y si declaras un constructor de movimiento?"},{"id":"01-q2","text":"¿Por qué `std::vector` copia en vez de mover al crecer si el constructor de movimiento no es `noexcept`?"},{"id":"01-q3","text":"Diferencia entre `std::move` y `std::forward`. ¿Qué hace `std::move` exactamente?"},{"id":"01-q4","text":"¿Qué devuelve `decltype((x))` y por qué difiere de `decltype(x)`?"}]},{"n":"02","slug":"02-compile-time","title":"Programación en tiempo de compilación","intro":"El área que más ha crecido desde C++11. En firmware convierte tablas, CRC y validaciones de configuración en coste cero; en sistemas grandes reduce errores de runtime a errores de compilación.","items":[{"id":"02-t1","ref":"1","d":0,"text":"`constexpr` y su evolución","note":null,"tags":[]},{"id":"02-t1.1","ref":"1.1","d":1,"text":"Una expresión [11] → bucles y variables [14] → lambdas [17]","note":null,"tags":["compile-time","emb:ok"]},{"id":"02-t1.2","ref":"1.2","d":1,"text":"`try`, `virtual`, `union`, asignación transitoria, `vector`/`string` constexpr [20]","note":"la memoria transitoria no llega al binario","tags":["compile-time","emb:ok"]},{"id":"02-t1.3","ref":"1.3","d":1,"text":"`static` en funciones constexpr, tipos no literales [23], `<cmath>` constexpr [23/26]","note":null,"tags":["compile-time"]},{"id":"02-t1.4","ref":"1.4","d":1,"text":"Límites: pasos de evaluación, diagnóstico de UB en constexpr como herramienta","note":null,"tags":["compile-time","safety"]},{"id":"02-t2","ref":"2","d":0,"text":"`if constexpr` [17] y ramas descartadas","note":null,"tags":["compile-time","generic","emb:ok"]},{"id":"02-t3","ref":"3","d":0,"text":"Garantías de compilación","note":null,"tags":[]},{"id":"02-t3.1","ref":"3.1","d":1,"text":"`consteval` [20], propagación [23]","note":null,"tags":["compile-time","emb:ok"]},{"id":"02-t3.2","ref":"3.2","d":1,"text":"`if consteval` [23] vs `std::is_constant_evaluated()` [20]","note":null,"tags":["compile-time"]},{"id":"02-t3.3","ref":"3.3","d":1,"text":"`constinit` [20] y el *static initialization order fiasco*","note":"inicialización en `.data`, sin constructores en arranque","tags":["lifetime","emb:ok"]},{"id":"02-t4","ref":"4","d":0,"text":"Variables y templates en compilación","note":null,"tags":[]},{"id":"02-t4.1","ref":"4.1","d":1,"text":"Variable templates [14], variables `inline` [17]","note":null,"tags":["compile-time","abi","emb:ok"]},{"id":"02-t4.2","ref":"4.2","d":1,"text":"NTTP `auto` [17], NTTP de clase y flotantes [20]","note":null,"tags":["generic","compile-time","emb:ok"]},{"id":"02-t5","ref":"5","d":0,"text":"Utilidades","note":null,"tags":[]},{"id":"02-t5.1","ref":"5.1","d":1,"text":"`std::bit_cast` [20]","note":null,"tags":["safety","emb:ok"]},{"id":"02-t5.2","ref":"5.2","d":1,"text":"`std::index_sequence` [14] y expansión de tablas","note":null,"tags":["generic","compile-time"]},{"id":"02-t6","ref":"6","d":0,"text":"Coste de compilación: instanciaciones, `-ftime-trace`, cuándo calcular en build (script) en vez de en C++","note":null,"tags":["tooling","performance"]}],"exercise":{"id":"02-ex","text":"Generar en compilación una tabla CRC-32 o una LUT de calibración con `consteval`, colocarla en flash con `constinit`/`const` y verificar en el `.map` que no ocupa RAM."},"questions":[{"id":"02-q1","text":"¿Qué diferencia hay entre `constexpr`, `consteval` y `constinit`? Pon un caso para cada uno."},{"id":"02-q2","text":"¿Por qué el UB dentro de una evaluación constante es un error de compilación y cómo puedes aprovecharlo en tests?"},{"id":"02-q3","text":"¿Qué problema resuelve `constinit` que `constexpr` no resuelve para una variable global mutable?"},{"id":"02-q4","text":"¿Cuándo preferirías generar una tabla con un script en el build en vez de con `constexpr`?"}]},{"n":"03","slug":"03-templates-concepts","title":"Templates modernos y concepts","intro":"Nivel esperado: leer y escribir código genérico de bibliotecas (STL, Abseil, Folly) y diagnosticar errores de instanciación. Concepts [20] sustituyen casi todo el SFINAE.","items":[{"id":"03-t1","ref":"1","d":0,"text":"Fundamentos que siguen importando","note":null,"tags":[]},{"id":"03-t1.1","ref":"1.1","d":1,"text":"Lookup en dos fases, nombres dependientes, `typename` y `template` como desambiguadores","note":null,"tags":["generic"]},{"id":"03-t1.2","ref":"1.2","d":1,"text":"ADL y puntos de personalización (`swap`, *niebloids*, CPOs)","note":null,"tags":["generic","abi"]},{"id":"03-t1.3","ref":"1.3","d":1,"text":"Especialización total y parcial, sobrecarga frente a especialización","note":null,"tags":["generic"]},{"id":"03-t2","ref":"2","d":0,"text":"Variadic templates","note":null,"tags":[]},{"id":"03-t2.1","ref":"2.1","d":1,"text":"Packs, `sizeof...` [11], fold expressions [17]","note":null,"tags":["generic","compile-time","emb:ok"]},{"id":"03-t2.2","ref":"2.2","d":1,"text":"Expansión en lambdas y `using` [17/20], pack indexing [26]","note":null,"tags":["generic"]},{"id":"03-t3","ref":"3","d":0,"text":"CTAD [17], guías de deducción, CTAD para agregados y alias [20]","note":null,"tags":["generic","type-design"]},{"id":"03-t4","ref":"4","d":0,"text":"SFINAE como herencia","note":null,"tags":[]},{"id":"03-t4.1","ref":"4.1","d":1,"text":"`enable_if`, `void_t`, *detection idiom* [11/17]: leerlo en código existente","note":null,"tags":["generic"]},{"id":"03-t5","ref":"5","d":0,"text":"Concepts [20]","note":null,"tags":[]},{"id":"03-t5.1","ref":"5.1","d":1,"text":"`requires` (cláusulas y expresiones), requisitos simples, de tipo, compuestos y anidados","note":null,"tags":["generic","type-design"]},{"id":"03-t5.2","ref":"5.2","d":1,"text":"Sintaxis abreviada y parámetros `auto`","note":null,"tags":["generic"]},{"id":"03-t5.3","ref":"5.3","d":1,"text":"Subsunción y ordenación de sobrecargas","note":null,"tags":["generic"]},{"id":"03-t5.4","ref":"5.4","d":1,"text":"`<concepts>` estándar y concepts de iteradores/ranges","note":null,"tags":["generic","iteration"]},{"id":"03-t5.5","ref":"5.5","d":1,"text":"Concepts como interfaz de drivers: polimorfismo estático sin vtable","note":null,"tags":["generic","performance","emb:ok"]},{"id":"03-t6","ref":"6","d":0,"text":"Type traits: `_t` [14], `_v` [17], `conjunction` [17], `remove_cvref`, `type_identity` [20]","note":null,"tags":["generic","compile-time"]},{"id":"03-t7","ref":"7","d":0,"text":"Coste: explosión de instanciaciones y tamaño de código (*code bloat*), técnicas de *thin template*","note":"vigilar flash con muchas instanciaciones","tags":["performance","emb:cond"]}],"exercise":{"id":"03-ex","text":"Definir un concept `RegisterAccess` para drivers (lectura/escritura de 8/16/32 bits) y reescribir con él un driver genérico que hoy use SFINAE o `void*`."},"questions":[{"id":"03-q1","text":"Explica el lookup en dos fases. ¿Por qué a veces hace falta `this->` en una clase derivada de una plantilla?"},{"id":"03-q2","text":"¿Qué es un *customization point object* y qué problema de ADL resuelve?"},{"id":"03-q3","text":"¿Cómo decide el compilador entre dos sobrecargas restringidas por concepts?"},{"id":"03-q4","text":"¿Cómo reducirías el tamaño de código de una plantilla instanciada con 20 tipos distintos?"}]},{"n":"04","slug":"04-tipos-vocabulario","title":"Tipos vocabulario","intro":"Tipos que expresan intención en interfaces y eliminan clases enteras de bugs (nulos, uniones mal etiquetadas, puntero+longitud). Es lo primero que se revisa en un code review.","items":[{"id":"04-t1","ref":"1","d":0,"text":"`std::optional` [17], monádico [23], `optional<T&>` [26]","note":null,"tags":["type-design","errors","emb:ok"]},{"id":"04-t2","ref":"2","d":0,"text":"`std::variant` [17]","note":null,"tags":[]},{"id":"04-t2.1","ref":"2.1","d":1,"text":"`visit`, patrón *overloaded*, `get_if`, `valueless_by_exception`","note":null,"tags":["type-design","functional","emb:ok"]},{"id":"04-t2.2","ref":"2.2","d":1,"text":"Máquinas de estado con `variant`","note":null,"tags":["type-design","emb:ok"]},{"id":"04-t2.3","ref":"2.3","d":1,"text":"Coste: tamaño = mayor alternativa + índice; `visit` y tablas de salto","note":null,"tags":["performance"]},{"id":"04-t3","ref":"3","d":0,"text":"`std::any` [17]","note":"heap y RTTI","tags":["type-design","emb:no"]},{"id":"04-t4","ref":"4","d":0,"text":"Vistas no propietarias","note":null,"tags":[]},{"id":"04-t4.1","ref":"4.1","d":1,"text":"`string_view` [17] y *dangling*","note":null,"tags":["lifetime","safety","emb:ok"]},{"id":"04-t4.2","ref":"4.2","d":1,"text":"`span` [20], extensión estática/dinámica, `as_bytes`","note":null,"tags":["lifetime","type-design","emb:ok"]},{"id":"04-t4.3","ref":"4.3","d":1,"text":"`mdspan` [23]","note":null,"tags":["type-design","emb:ok"]},{"id":"04-t5","ref":"5","d":0,"text":"Contenedores","note":null,"tags":[]},{"id":"04-t5.1","ref":"5.1","d":1,"text":"`array`, `to_array` [20], `tuple`, `apply` [17], `byte` [17]","note":null,"tags":["type-design","emb:ok"]},{"id":"04-t5.2","ref":"5.2","d":1,"text":"`flat_map`/`flat_set` [23]","note":"contenedor subyacente con heap","tags":["performance","emb:cond"]},{"id":"04-t5.3","ref":"5.3","d":1,"text":"`inplace_vector` [26]","note":null,"tags":["type-design","emb:ok"]},{"id":"04-t5.4","ref":"5.4","d":1,"text":"`try_emplace` [17], `contains`, `erase_if`, `ssize` [20]","note":null,"tags":["iteration"]},{"id":"04-t6","ref":"6","d":0,"text":"Tipos fuertes (*strong typedefs*): unidades, IDs y evitar argumentos intercambiables","note":null,"tags":["type-design","safety","emb:ok"]}],"exercise":{"id":"04-ex","text":"Sustituir las firmas `(uint8_t* buf, size_t len)` de un driver por `std::span<std::byte>` y modelar los estados de un parser de tramas con `std::variant`."},"questions":[{"id":"04-q1","text":"¿Cuándo devolverías `std::optional<T>` y cuándo `std::expected<T, E>`?"},{"id":"04-q2","text":"¿Qué riesgos tiene guardar un `std::string_view` como miembro de clase?"},{"id":"04-q3","text":"¿Qué es `valueless_by_exception` y cuándo puede ocurrir?"},{"id":"04-q4","text":"Diseña un tipo fuerte `Milliseconds` que no se pueda confundir con `Hertz`."}]},{"n":"05","slug":"05-gestion-errores","title":"Gestión de errores","intro":"Una empresa grande exige una política de errores coherente. `std::expected` [23] permite errores tipados sin excepciones; las garantías de excepción siguen siendo pregunta obligada.","items":[{"id":"05-t1","ref":"1","d":0,"text":"Panorama: códigos de retorno, `errno`, excepciones, tipos resultado","note":null,"tags":["errors","performance"]},{"id":"05-t1.1","ref":"1.1","d":1,"text":"Coste real de las excepciones: tablas de unwind, tamaño de código, determinismo","note":"bare-metal suele compilar con `-fno-exceptions`","tags":["errors","emb:no"]},{"id":"05-t2","ref":"2","d":0,"text":"Garantías de excepción: nothrow, fuerte, básica; copy-and-swap","note":null,"tags":["errors","lifetime"]},{"id":"05-t3","ref":"3","d":0,"text":"RAII para limpieza: *scope guards* (`scope_exit`), `unique_resource`","note":null,"tags":["errors","lifetime","emb:ok"]},{"id":"05-t4","ref":"4","d":0,"text":"`std::expected<T, E>` [23]","note":null,"tags":[]},{"id":"05-t4.1","ref":"4.1","d":1,"text":"`unexpected`, acceso, `value_or`","note":null,"tags":["errors","type-design","emb:ok"]},{"id":"05-t4.2","ref":"4.2","d":1,"text":"`and_then`, `transform`, `or_else`, `transform_error`","note":null,"tags":["errors","functional","emb:ok"]},{"id":"05-t4.3","ref":"4.3","d":1,"text":"`expected<void, E>` y diseño del tipo de error","note":null,"tags":["errors","type-design"]},{"id":"05-t4.4","ref":"4.4","d":1,"text":"`value()` lanza `bad_expected_access`: usar `*`/`has_value` sin excepciones","note":null,"tags":["errors","emb:cond"]},{"id":"05-t5","ref":"5","d":0,"text":"`std::error_code` / `error_category` [11]","note":"categorías con strings, revisar tamaño","tags":["errors","interop","emb:cond"]},{"id":"05-t6","ref":"6","d":0,"text":"Atributos y especificadores","note":null,"tags":[]},{"id":"05-t6.1","ref":"6.1","d":1,"text":"`[[nodiscard]]` [17/20], `noexcept` [11/17], `[[noreturn]]`, `std::unreachable` [23]","note":null,"tags":["errors","emb:ok"]},{"id":"05-t6.2","ref":"6.2","d":1,"text":"Política de `noexcept`: cuándo marcar, efecto en `std::terminate`","note":null,"tags":["errors"]},{"id":"05-t7","ref":"7","d":0,"text":"Precondiciones: `assert`, `source_location` [20], contracts [26]","note":null,"tags":["errors","safety","emb:ok"]}],"exercise":{"id":"05-ex","text":"Convertir la API pública de un driver de códigos `int` a `std::expected<T, DriverError>` y encadenar init → configure → read con `and_then`."},"questions":[{"id":"05-q1","text":"Define las garantías básica, fuerte y nothrow. ¿Qué garantía da `vector::push_back`?"},{"id":"05-q2","text":"¿Qué ocurre si una excepción escapa de una función `noexcept`?"},{"id":"05-q3","text":"Compara `std::expected` con excepciones en un servicio de alto rendimiento y en firmware."},{"id":"05-q4","text":"¿Cómo diseñarías los tipos de error de una biblioteca usada por varios equipos?"}]},{"n":"06","slug":"06-lambdas","title":"Lambdas y estilo funcional","intro":"Callbacks, visitantes, algoritmos y coroutines dependen de las lambdas. Entender el tipo de cierre y el coste del borrado de tipo distingue a un senior.","items":[{"id":"06-t1","ref":"1","d":0,"text":"Fundamentos [11]: tipo de cierre, capturas, `mutable`, conversión a puntero a función","note":null,"tags":["functional","interop","emb:ok"]},{"id":"06-t2","ref":"2","d":0,"text":"Evolución","note":null,"tags":[]},{"id":"06-t2.1","ref":"2.1","d":1,"text":"*Init-capture* y lambdas genéricas [14]","note":null,"tags":["functional","value-sem"]},{"id":"06-t2.2","ref":"2.2","d":1,"text":"`constexpr` lambdas, captura de `*this` [17]","note":null,"tags":["functional","compile-time","lifetime"]},{"id":"06-t2.3","ref":"2.3","d":1,"text":"Parámetros template, lambdas sin estado construibles, en contexto no evaluado [20]","note":null,"tags":["functional","generic"]},{"id":"06-t2.4","ref":"2.4","d":1,"text":"Lambdas `static` y recursivas con *deducing this* [23]","note":null,"tags":["functional"]},{"id":"06-t3","ref":"3","d":0,"text":"Riesgos de tiempo de vida: capturas por referencia que sobreviven al ámbito","note":null,"tags":["lifetime","safety"]},{"id":"06-t4","ref":"4","d":0,"text":"Wrappers de invocables","note":null,"tags":[]},{"id":"06-t4.1","ref":"4.1","d":1,"text":"`std::function` [11]: borrado de tipo y SBO","note":"heap si el cierre no cabe en el SBO","tags":["functional","performance","emb:cond"]},{"id":"06-t4.2","ref":"4.2","d":1,"text":"`move_only_function` [23], `copyable_function` [26]","note":null,"tags":["functional","emb:cond"]},{"id":"06-t4.3","ref":"4.3","d":1,"text":"`function_ref` [26]","note":null,"tags":["functional","emb:ok"]},{"id":"06-t4.4","ref":"4.4","d":1,"text":"`invoke` [17], `invoke_r` [23], `bind_front` [20], `bind_back` [23]","note":null,"tags":["functional","generic"]},{"id":"06-t5","ref":"5","d":0,"text":"Patrones: IIFE, *overloaded*, callbacks de ISR con templates o `function_ref`","note":null,"tags":["functional","emb:ok"]}],"exercise":{"id":"06-ex","text":"Implementar un dispatcher de eventos sin heap que acepte lambdas con captura, comparando tamaño de código entre `std::function`, templates y `function_ref`."},"questions":[{"id":"06-q1","text":"¿Qué genera el compilador para una lambda con capturas? ¿Cuál es su tamaño?"},{"id":"06-q2","text":"¿Cuándo asigna memoria `std::function`? ¿Cómo lo evitas?"},{"id":"06-q3","text":"¿Qué problema tiene capturar `this` en una lambda que se ejecuta en otro hilo?"},{"id":"06-q4","text":"Implementa una versión simplificada de `function_ref`."}]},{"n":"07","slug":"07-ranges","title":"Ranges, views y algoritmos","intro":"Saber elegir algoritmo y escribir iteradores correctos sigue siendo una prueba estándar. Ranges [20] cambia el estilo, pero el modelo de iteradores es la base.","items":[{"id":"07-t1","ref":"1","d":0,"text":"Modelo de iteradores","note":null,"tags":[]},{"id":"07-t1.1","ref":"1.1","d":1,"text":"Categorías, `iterator_traits`, iteradores contiguos [20]","note":null,"tags":["iteration","generic"]},{"id":"07-t1.2","ref":"1.2","d":1,"text":"Escribir un iterador y un centinela propios","note":null,"tags":["iteration","generic","emb:ok"]},{"id":"07-t1.3","ref":"1.3","d":1,"text":"Invalidación de iteradores por contenedor","note":null,"tags":["iteration","lifetime","safety"]},{"id":"07-t2","ref":"2","d":0,"text":"Algoritmos: `all_of`, `iota` [11], `clamp`, `reduce` [17], `midpoint`, `shift_left` [20]","note":null,"tags":["iteration","emb:ok"]},{"id":"07-t2.1","ref":"2.1","d":1,"text":"Políticas de ejecución paralela [17]","note":"requiere TBB o hilos","tags":["iteration","concurrency","emb:no"]},{"id":"07-t3","ref":"3","d":0,"text":"Ranges [20]: centinelas, `std::ranges::*`, proyecciones, concepts de range, *borrowed ranges*","note":null,"tags":["iteration","generic","emb:ok"]},{"id":"07-t4","ref":"4","d":0,"text":"Views [20]: `filter`, `transform`, `take`, `split`, `join`, `iota`; pereza; views propias","note":"sin heap; revisar tamaño con `-Os`","tags":["iteration","functional","emb:ok"]},{"id":"07-t5","ref":"5","d":0,"text":"C++23: `ranges::to`, `zip`, `enumerate`, `chunk`, `slide`, `fold_left`, `contains`","note":"`ranges::to` asigna memoria","tags":["iteration","emb:cond"]},{"id":"07-t6","ref":"6","d":0,"text":"Coste: tiempo de compilación, depuración y ensamblador frente a bucles manuales","note":null,"tags":["performance","tooling"]}],"exercise":{"id":"07-ex","text":"Reescribir el procesado de un buffer de muestras ADC (filtrado, escalado, detección de umbral) con views y comparar el ensamblador con el bucle manual."},"questions":[{"id":"07-q1","text":"¿Qué es un centinela y qué ventaja aporta frente a un par de iteradores?"},{"id":"07-q2","text":"¿Por qué `filter_view` no es `const`-iterable y qué implica?"},{"id":"07-q3","text":"¿Qué invalida los iteradores de `std::vector`? ¿Y de `std::unordered_map`?"},{"id":"07-q4","text":"¿Qué es un *borrowed range* y para qué existe `std::ranges::dangling`?"}]},{"n":"08","slug":"08-clases-lenguaje","title":"Clases y novedades del lenguaje","intro":"Cambios que reducen código repetitivo y bugs en clases: comparaciones, inicialización, desestructuración y deducción de `this`.","items":[{"id":"08-t1","ref":"1","d":0,"text":"Structured bindings [17], tipos tuple-like, con capturas [20], como condición [26]","note":null,"tags":["type-design","emb:ok"]},{"id":"08-t2","ref":"2","d":0,"text":"`if`/`switch` con inicializador [17], range-`for` con inicializador [20]","note":null,"tags":["lifetime","emb:ok"]},{"id":"08-t3","ref":"3","d":0,"text":"Comparaciones: `<=>` [20], categorías de ordenación, `==` por defecto, reescritura","note":null,"tags":["type-design","emb:ok"]},{"id":"08-t4","ref":"4","d":0,"text":"Designated initializers [20] y configuración de periféricos","note":null,"tags":["type-design","emb:ok"]},{"id":"08-t5","ref":"5","d":0,"text":"*Deducing this* [23]: sobrecargas const/&&, CRTP sin CRTP, lambdas recursivas","note":null,"tags":["generic","type-design","emb:ok"]},{"id":"08-t6","ref":"6","d":0,"text":"Polimorfismo dinámico: vtables, destructores virtuales, *slicing*, `final` para devirtualizar","note":"vtables en flash; evitar RTTI","tags":["type-design","performance","emb:cond"]},{"id":"08-t7","ref":"7","d":0,"text":"Atributos: `[[maybe_unused]]`, `[[fallthrough]]` [17], `[[likely]]`, `[[no_unique_address]]` [20], `[[assume]]` [23]","note":null,"tags":["performance","emb:ok"]},{"id":"08-t8","ref":"8","d":0,"text":"Otros: `explicit(bool)` [20], `char8_t` [20], `auto(x)` [23], `operator[]` multidimensional [23]","note":null,"tags":["type-design"]},{"id":"08-t9","ref":"9","d":0,"text":"`volatile`: usos deprecados [20] y revertidos [23]; solo para MMIO","note":null,"tags":["memory-model","emb:ok"]},{"id":"08-t10","ref":"10","d":0,"text":"Preprocesador: `#elifdef` [23], `#embed` [26]","note":"`#embed` para blobs de firmware","tags":["tooling","emb:ok"]}],"exercise":{"id":"08-ex","text":"Definir la configuración de un periférico con designated initializers y un tipo de versión de firmware comparable con `<=>`."},"questions":[{"id":"08-q1","text":"¿Qué genera `auto operator<=>(const T&) const = default;` y qué no?"},{"id":"08-q2","text":"¿Qué es el *object slicing* y cómo se previene?"},{"id":"08-q3","text":"¿Qué problema de CRTP resuelve *deducing this*?"},{"id":"08-q4","text":"¿Cuándo es útil `[[no_unique_address]]`?"}]},{"n":"09","slug":"09-concurrencia","title":"Concurrencia y modelo de memoria","intro":"Pregunta segura en cualquier entrevista de sistemas. El modelo de memoria [11] explica `volatile` frente a `std::atomic` y la comunicación entre ISR, tareas e hilos.","items":[{"id":"09-t1","ref":"1","d":0,"text":"Modelo de memoria [11]: *happens-before*, *synchronizes-with*, data races = UB","note":null,"tags":["memory-model","safety"]},{"id":"09-t2","ref":"2","d":0,"text":"`std::atomic` [11]","note":null,"tags":[]},{"id":"09-t2.1","ref":"2.1","d":1,"text":"Órdenes de memoria y cuándo basta `relaxed`","note":null,"tags":["memory-model","performance","emb:ok"]},{"id":"09-t2.2","ref":"2.2","d":1,"text":"Lock-free en Cortex-M0 frente a M3/M4/M7, `is_always_lock_free` [17]","note":"M0 no tiene LDREX/STREX","tags":["memory-model","emb:cond"]},{"id":"09-t2.3","ref":"2.3","d":1,"text":"`atomic_ref`, `wait`/`notify`, `atomic<shared_ptr>` [20], fences","note":null,"tags":["memory-model","concurrency"]},{"id":"09-t3","ref":"3","d":0,"text":"Problemas clásicos: deadlock, livelock, inversión de prioridad, *false sharing* (`hardware_destructive_interference_size` [17]), ABA","note":null,"tags":["concurrency","performance","emb:ok"]},{"id":"09-t4","ref":"4","d":0,"text":"Hilos y sincronización","note":null,"tags":[]},{"id":"09-t4.1","ref":"4.1","d":1,"text":"`thread`, `jthread`/`stop_token` [20], `thread_local` [11]","note":"bare-metal sin hilos; usar el RTOS","tags":["concurrency","lifetime","emb:no"]},{"id":"09-t4.2","ref":"4.2","d":1,"text":"`mutex`, `scoped_lock` [17], `shared_mutex` [17], `condition_variable`","note":"vía primitivas del RTOS","tags":["concurrency","emb:cond"]},{"id":"09-t4.3","ref":"4.3","d":1,"text":"`counting_semaphore`, `latch`, `barrier` [20], `call_once`","note":null,"tags":["concurrency"]},{"id":"09-t5","ref":"5","d":0,"text":"Tareas: `async`/`future` [11] y sus límites, `std::execution` [26]","note":null,"tags":["concurrency","async","emb:no"]},{"id":"09-t6","ref":"6","d":0,"text":"RTOS: RAII sobre FreeRTOS, requisitos `Lockable` para `lock_guard`, SPSC ISR→tarea","note":null,"tags":["concurrency","lifetime","emb:ok"]},{"id":"09-t7","ref":"7","d":0,"text":"Detección: ThreadSanitizer, revisión de órdenes de memoria","note":null,"tags":["tooling","safety"]}],"exercise":{"id":"09-ex","text":"Implementar un ring buffer SPSC lock-free con `std::atomic` y órdenes acquire/release para pasar datos de una ISR a una tarea, y razonar formalmente su corrección."},"questions":[{"id":"09-q1","text":"¿Por qué `volatile` no sirve para sincronizar hilos?"},{"id":"09-q2","text":"Explica acquire/release con un ejemplo de publicación de datos."},{"id":"09-q3","text":"¿Qué es el *false sharing* y cómo lo detectas y corriges?"},{"id":"09-q4","text":"¿Cómo implementas un mutex compatible con `std::lock_guard` sobre FreeRTOS?"}]},{"n":"10","slug":"10-coroutines","title":"Coroutines","intro":"Mecanismo de bajo nivel [20] con `std::generator` [23] y `std::execution` [26] encima. Se usa en servidores asíncronos (Folly, Seastar) y promete mucho en máquinas de estado de firmware.","items":[{"id":"10-t1","ref":"1","d":0,"text":"Conceptos: stackless frente a hilos y *fibers*; `co_await`/`co_yield`/`co_return`; el frame","note":null,"tags":["async","lifetime"]},{"id":"10-t2","ref":"2","d":0,"text":"Maquinaria [20]: `promise_type`, `coroutine_handle`, awaitables, transferencia simétrica","note":null,"tags":["async"]},{"id":"10-t3","ref":"3","d":0,"text":"Tiempo de vida: referencias en parámetros que no sobreviven a la suspensión","note":null,"tags":["async","lifetime","safety"]},{"id":"10-t4","ref":"4","d":0,"text":"Tipos de alto nivel: `generator<T>` propio, `std::generator` [23], `task<T>`","note":null,"tags":["async","iteration"]},{"id":"10-t5","ref":"5","d":0,"text":"Embedded","note":null,"tags":[]},{"id":"10-t5.1","ref":"5.1","d":1,"text":"`operator new` en `promise_type`, pools estáticos, HALO","note":"el frame usa heap salvo que se controle","tags":["async","performance","emb:cond"]},{"id":"10-t5.2","ref":"5.2","d":1,"text":"Protocolos con timeouts y scheduler cooperativo","note":null,"tags":["async","emb:ok"]}],"exercise":{"id":"10-ex","text":"Reescribir una máquina de estados de protocolo (handshake por UART con reintentos y timeout) como coroutine, con frames asignados desde un pool estático."},"questions":[{"id":"10-q1","text":"¿Dónde vive el estado de una coroutine y quién lo destruye?"},{"id":"10-q2","text":"¿Por qué es peligroso pasar un `const std::string&` a una coroutine?"},{"id":"10-q3","text":"¿Qué es la transferencia simétrica y qué problema evita?"},{"id":"10-q4","text":"¿Cómo evitarías la asignación dinámica del frame en un microcontrolador?"}]},{"n":"11","slug":"11-format-chrono-io","title":"Strings, formato, tiempo y E/S","intro":"`std::format` [20] y `std::print` [23] con seguridad de tipos; `<charconv>` [17] rápido y sin locale; `<chrono>` para que las unidades de tiempo sean tipos.","items":[{"id":"11-t1","ref":"1","d":0,"text":"Formato","note":null,"tags":[]},{"id":"11-t1.1","ref":"1.1","d":1,"text":"`format`, `format_to_n` [20], especificadores, comprobación en compilación    _coste en flash; `format_to_n` evita heap_","note":null,"tags":["type-design","safety","emb:cond"]},{"id":"11-t1.2","ref":"1.2","d":1,"text":"`std::formatter` propio","note":null,"tags":["generic"]},{"id":"11-t1.3","ref":"1.3","d":1,"text":"`print` [23], formato de rangos [23]","note":"depende de stdio","tags":["type-design","emb:no"]},{"id":"11-t2","ref":"2","d":0,"text":"`to_chars`/`from_chars` [17], constexpr [23]","note":null,"tags":["performance","emb:ok"]},{"id":"11-t3","ref":"3","d":0,"text":"Strings: SSO, `starts_with` [20], `contains` [23], `resize_and_overwrite` [23], literales","note":"heap fuera del SSO","tags":["performance","emb:cond"]},{"id":"11-t4","ref":"4","d":0,"text":"Texto y Unicode: `char8_t` [20], UTF-8 como codificación por defecto, por qué evitar `std::regex`","note":null,"tags":["type-design","performance"]},{"id":"11-t5","ref":"5","d":0,"text":"`<chrono>`: duraciones, relojes [11], literales [14], calendario y zonas [20]","note":"duraciones y relojes propios; zonas horarias no","tags":["type-design","emb:ok"]},{"id":"11-t6","ref":"6","d":0,"text":"Linux: `filesystem` [17], `spanstream` [23], iostreams frente a format","note":null,"tags":["abi","emb:no"]}],"exercise":{"id":"11-ex","text":"Implementar un logger con `format_to_n` sobre un buffer estático, un formatter para un struct de telemetría y un reloj `chrono` propio sobre SysTick."},"questions":[{"id":"11-q1","text":"¿Por qué `std::format` es más seguro que `printf`? ¿Y más rápido que iostreams?"},{"id":"11-q2","text":"¿Qué ventajas tiene `from_chars` frente a `strtol` o `std::stoi`?"},{"id":"11-q3","text":"Diseña un reloj `chrono` compatible sobre un contador de hardware de 32 bits con wrap-around."},{"id":"11-q4","text":"¿Por qué se desaconseja `std::regex` en código de producción?"}]},{"n":"12","slug":"12-modulos","title":"Módulos, enlace y organización del código","intro":"Entender el modelo de compilación (unidades de traducción, ODR, enlace) es imprescindible en bases de código de millones de líneas. Los módulos [20] lo cambian, con soporte aún irregular. Fuera del build por defecto hasta que el toolchain lo permita.","items":[{"id":"12-t1","ref":"1","d":0,"text":"Modelo clásico","note":null,"tags":[]},{"id":"12-t1.1","ref":"1.1","d":1,"text":"Unidades de traducción, enlace interno/externo, `static` y namespaces anónimos","note":null,"tags":["abi"]},{"id":"12-t1.2","ref":"1.2","d":1,"text":"ODR, `inline` (funciones y variables [17]), violaciones silenciosas","note":null,"tags":["abi","safety"]},{"id":"12-t1.3","ref":"1.3","d":1,"text":"Coste de los headers: tiempos de build, *include-what-you-use*, *precompiled headers*","note":null,"tags":["abi","tooling"]},{"id":"12-t2","ref":"2","d":0,"text":"Módulos [20]","note":null,"tags":[]},{"id":"12-t2.1","ref":"2.1","d":1,"text":"`export module`, `import`, particiones, *global module fragment*, *header units*","note":null,"tags":["abi"]},{"id":"12-t2.2","ref":"2.2","d":1,"text":"`import std;` [23]","note":"soporte de toolchain cruzado","tags":["abi","emb:cond"]},{"id":"12-t2.3","ref":"2.3","d":1,"text":"*Module linkage*, macros que no cruzan fronteras","note":null,"tags":["abi"]},{"id":"12-t3","ref":"3","d":0,"text":"Herramientas: CMake `FILE_SET CXX_MODULES` + Ninja, soporte en GCC/Clang/MSVC","note":null,"tags":["tooling","abi"]},{"id":"12-t4","ref":"4","d":0,"text":"Sin módulos: namespaces `inline` [11] para versionado, anidados [17], `__has_include` [17], macros `__cpp_*` [20]","note":null,"tags":["abi","emb:ok"]}],"exercise":{"id":"12-ex","text":"Convertir una librería pequeña de utilidades en un módulo y compilarla con CMake + Ninja para host; documentar qué falla con el toolchain del target."},"questions":[{"id":"12-q1","text":"¿Qué es una violación de ODR y por qué el enlazador no siempre la detecta?"},{"id":"12-q2","text":"¿Qué aporta un namespace `inline` al versionado de una biblioteca?"},{"id":"12-q3","text":"¿Qué problemas de los headers resuelven los módulos y cuáles no?"},{"id":"12-q4","text":"¿Cómo reducirías a la mitad el tiempo de compilación de un proyecto grande?"}]},{"n":"13","slug":"13-embedded","title":"C++ moderno en embedded","intro":"Módulo transversal: aplica todo lo anterior a targets sin heap, sin excepciones y sin RTTI, con acceso directo a hardware. Recoge los descartes y aportes marcados con `@emb:*` en el resto del curso.","items":[{"id":"13-t1","ref":"1","d":0,"text":"Entorno","note":null,"tags":[]},{"id":"13-t1.1","ref":"1.1","d":1,"text":"*Freestanding* y su ampliación [23/26]","note":null,"tags":["abi","emb:ok"]},{"id":"13-t1.2","ref":"1.2","d":1,"text":"`-fno-exceptions`, `-fno-rtti`, `-fno-threadsafe-statics`: qué deja de funcionar","note":null,"tags":["errors","emb:ok"]},{"id":"13-t1.3","ref":"1.3","d":1,"text":"newlib/newlib-nano, partes de la STL que arrastran heap o locale","note":null,"tags":["performance","emb:cond"]},{"id":"13-t1.4","ref":"1.4","d":1,"text":"Arranque: `.init_array`, constructores globales, `constinit`","note":null,"tags":["lifetime","emb:ok"]},{"id":"13-t2","ref":"2","d":0,"text":"Memoria sin heap","note":null,"tags":[]},{"id":"13-t2.1","ref":"2.1","d":1,"text":"`std::pmr` [17] sobre buffers estáticos","note":null,"tags":["lifetime","performance","emb:ok"]},{"id":"13-t2.2","ref":"2.2","d":1,"text":"Allocators y pools propios","note":null,"tags":["lifetime","emb:ok"]},{"id":"13-t2.3","ref":"2.3","d":1,"text":"*Placement new*, `launder` [17], `construct_at` [20], `start_lifetime_as` [23]","note":null,"tags":["lifetime","safety","emb:ok"]},{"id":"13-t2.4","ref":"2.4","d":1,"text":"ETL, `inplace_vector` [26]","note":null,"tags":["type-design","emb:ok"]},{"id":"13-t3","ref":"3","d":0,"text":"Bits y registros","note":null,"tags":[]},{"id":"13-t3.1","ref":"3.1","d":1,"text":"`<bit>` [20], `byteswap` [23]","note":null,"tags":["compile-time","emb:ok"]},{"id":"13-t3.2","ref":"3.2","d":1,"text":"MMIO tipado: `volatile` + templates + máscaras `constexpr`","note":null,"tags":["type-design","memory-model","emb:ok"]},{"id":"13-t3.3","ref":"3.3","d":1,"text":"Bitfields frente a máscaras, *strict aliasing* y `bit_cast`","note":null,"tags":["safety","emb:ok"]},{"id":"13-t4","ref":"4","d":0,"text":"Tamaño y rendimiento: `size`, `.map`, Bloaty, LTO, `--gc-sections`, coste de templates y virtual","note":null,"tags":["performance","tooling","emb:ok"]},{"id":"13-t5","ref":"5","d":0,"text":"Aritmética: punto fijo, enteros de ancho fijo, promociones y overflow","note":null,"tags":["type-design","safety","emb:ok"]},{"id":"13-t6","ref":"6","d":0,"text":"Estándares: MISRA C++:2023, AUTOSAR C++14, Core Guidelines","note":null,"tags":["safety","tooling","emb:ok"]}],"exercise":{"id":"13-ex","text":"Construir una capa de acceso a registros tipada y `constexpr` para un periférico de STM32 y verificar que el binario es idéntico al de la versión con macros CMSIS."},"questions":[{"id":"13-q1","text":"¿Qué partes de la biblioteca estándar usarías en bare-metal sin heap ni excepciones?"},{"id":"13-q2","text":"¿Por qué reinterpretar un buffer de bytes como struct puede ser UB y cómo lo harías bien?"},{"id":"13-q3","text":"¿Qué cuesta en flash una función virtual? ¿Y una plantilla instanciada 10 veces?"},{"id":"13-q4","text":"¿Cómo garantizas que un objeto global no ejecuta código antes de `main`?"}]},{"n":"14","slug":"14-cpp26","title":"C++26","intro":"Técnicamente completo, con soporte llegando por partes. Reflexión y contracts cambiarán cómo se escriben serialización, bindings y validación. Fuera del build por defecto.","items":[{"id":"14-t1","ref":"1","d":0,"text":"Reflexión estática: `^^`, `std::meta::info`, splicers `[: :]`, consultas","note":"todo en compilación","tags":["compile-time","generic","emb:ok"]},{"id":"14-t1.1","ref":"1.1","d":1,"text":"Casos de uso: `enum` ↔ string, serialización, mapas de registros, bindings","note":null,"tags":["compile-time","interop"]},{"id":"14-t2","ref":"2","d":0,"text":"Contracts: `pre`, `post`, `contract_assert`, semánticas de evaluación, handler","note":null,"tags":["errors","safety","emb:ok"]},{"id":"14-t3","ref":"3","d":0,"text":"`std::execution`: senders/receivers/schedulers, `then`, `let_value`, `when_all`","note":null,"tags":["async","concurrency","emb:cond"]},{"id":"14-t4","ref":"4","d":0,"text":"Biblioteca","note":null,"tags":[]},{"id":"14-t4.1","ref":"4.1","d":1,"text":"`inplace_vector`, `function_ref`, `optional<T&>`, aritmética saturada","note":null,"tags":["type-design","emb:ok"]},{"id":"14-t4.2","ref":"4.2","d":1,"text":"Hazard pointers, RCU","note":null,"tags":["memory-model","concurrency"]},{"id":"14-t4.3","ref":"4.3","d":1,"text":"`std::simd`, `std::linalg`","note":null,"tags":["performance"]},{"id":"14-t4.4","ref":"4.4","d":1,"text":"Hardening de la biblioteca estándar","note":null,"tags":["safety"]},{"id":"14-t5","ref":"5","d":0,"text":"Lenguaje: pack indexing, `#embed`, placeholder `_`, `= delete(\"motivo\")`, comportamiento erróneo para no inicializadas","note":null,"tags":["safety","generic"]}],"exercise":{"id":"14-ex","text":"Usar reflexión para generar automáticamente la conversión `enum` ↔ string de los códigos de error del módulo 05."},"questions":[{"id":"14-q1","text":"¿Qué problemas de serialización resuelve la reflexión estática?"},{"id":"14-q2","text":"¿Qué semánticas de evaluación tienen los contracts y cuál usarías en producción?"},{"id":"14-q3","text":"¿Qué es el comportamiento erróneo y cómo cambia el riesgo de las variables sin inicializar?"},{"id":"14-q4","text":"¿Qué aporta `std::execution` frente a `std::async`?"}]},{"n":"15","slug":"15-ub-seguridad","title":"Modelo de objetos, comportamiento indefinido y seguridad de memoria","intro":"Módulo nuevo y prioritario. Mozilla, Google, Meta y DuckDuckGo invierten en seguridad de memoria (Rust, hardening, sanitizers). Un ingeniero top de C++ debe saber qué es UB, por qué el optimizador lo explota y cómo eliminar clases enteras de vulnerabilidades.","items":[{"id":"15-t1","ref":"1","d":0,"text":"Modelo de objetos","note":null,"tags":[]},{"id":"15-t1.1","ref":"1.1","d":1,"text":"Objeto, almacenamiento, tiempo de vida; inicio y fin de vida","note":null,"tags":["lifetime","safety"]},{"id":"15-t1.2","ref":"1.2","d":1,"text":"Creación implícita de objetos [20], `start_lifetime_as` [23]","note":null,"tags":["lifetime","safety","emb:ok"]},{"id":"15-t1.3","ref":"1.3","d":1,"text":"Alineación, padding, `alignas`, `alignof`, tamaños de tipos","note":null,"tags":["performance","emb:ok"]},{"id":"15-t1.4","ref":"1.4","d":1,"text":"Tipos trivialmente copiables, *standard layout*, implicit-lifetime types","note":null,"tags":["type-design","interop"]},{"id":"15-t2","ref":"2","d":0,"text":"Comportamiento indefinido","note":null,"tags":[]},{"id":"15-t2.1","ref":"2.1","d":1,"text":"Catálogo: overflow con signo, desplazamientos, nulos, fuera de límites, data races, uso tras liberar","note":null,"tags":["safety"]},{"id":"15-t2.2","ref":"2.2","d":1,"text":"*Strict aliasing* y `bit_cast`/`memcpy` como alternativas","note":null,"tags":["safety","emb:ok"]},{"id":"15-t2.3","ref":"2.3","d":1,"text":"Cómo el optimizador explota el UB (eliminación de comprobaciones)","note":null,"tags":["safety","performance"]},{"id":"15-t2.4","ref":"2.4","d":1,"text":"Comportamiento no especificado e implementation-defined","note":null,"tags":["safety"]},{"id":"15-t2.5","ref":"2.5","d":1,"text":"Comportamiento erróneo [26]","note":null,"tags":["safety"]},{"id":"15-t3","ref":"3","d":0,"text":"Seguridad de memoria","note":null,"tags":[]},{"id":"15-t3.1","ref":"3.1","d":1,"text":"Dangling: referencias, vistas, iteradores, lambdas, coroutines","note":null,"tags":["lifetime","safety"]},{"id":"15-t3.2","ref":"3.2","d":1,"text":"Bounds checking: `.at()`, `span`, modos de hardening (`_GLIBCXX_ASSERTIONS`, libc++ hardening)","note":"coste de tamaño; activar en debug","tags":["safety","emb:cond"]},{"id":"15-t3.3","ref":"3.3","d":1,"text":"Clang `-Wunsafe-buffer-usage`, `-Wdangling`, `[[clang::lifetimebound]]`","note":null,"tags":["safety","tooling"]},{"id":"15-t3.4","ref":"3.4","d":1,"text":"Perfiles de seguridad y lifetime analysis (propuestas)","note":null,"tags":["safety"]},{"id":"15-t4","ref":"4","d":0,"text":"Detección: ASan, UBSan, MSan, TSan, Valgrind; constexpr como detector de UB","note":"en host, no en target","tags":["safety","tooling","emb:cond"]},{"id":"15-t5","ref":"5","d":0,"text":"Contexto: C++ frente a Rust en Mozilla/Google; cuándo reescribir y cuándo endurecer","note":null,"tags":["safety","interop"]}],"exercise":{"id":"15-ex","text":"Reunir cinco bugs de UB típicos de firmware (aliasing de buffers, overflow en contadores, shift de 32 bits, lectura sin inicializar, dangling de `string_view`), reproducirlos con UBSan/ASan en host y corregirlos sin coste en el target."},"questions":[{"id":"15-q1","text":"¿Por qué el compilador puede eliminar `if (x + 1 < x)` con `int x`?"},{"id":"15-q2","text":"¿Qué es *strict aliasing* y cuándo es legal leer un `float` como `uint32_t`?"},{"id":"15-q3","text":"¿Qué detecta ASan que no detecta UBSan, y viceversa?"},{"id":"15-q4","text":"¿Cuándo empieza y termina el tiempo de vida de un objeto creado con `malloc`?"}]},{"n":"16","slug":"16-diseno-apis","title":"Diseño de tipos y APIs: polimorfismo, type erasure, ABI e interoperabilidad","intro":"Módulo nuevo. En empresas con bibliotecas compartidas por cientos de ingenieros se evalúa la capacidad de diseñar APIs estables, elegir el tipo de polimorfismo adecuado e integrar C y Rust.","items":[{"id":"16-t1","ref":"1","d":0,"text":"Semántica de valor frente a referencia en el diseño de APIs","note":null,"tags":["value-sem","type-design"]},{"id":"16-t2","ref":"2","d":0,"text":"Polimorfismo: cuatro herramientas","note":null,"tags":[]},{"id":"16-t2.1","ref":"2.1","d":1,"text":"Dinámico (virtual)","note":"vtables, sin RTTI","tags":["type-design","emb:cond"]},{"id":"16-t2.2","ref":"2.2","d":1,"text":"Estático (templates/concepts, CRTP, deducing this)","note":null,"tags":["generic","emb:ok"]},{"id":"16-t2.3","ref":"2.3","d":1,"text":"Cerrado (`std::variant`)","note":null,"tags":["type-design","emb:ok"]},{"id":"16-t2.4","ref":"2.4","d":1,"text":"*Type erasure* (estilo `std::function`, Sean Parent)","note":"sin heap con SBO fijo","tags":["type-design","functional","emb:cond"]},{"id":"16-t3","ref":"3","d":0,"text":"Diseño de interfaces","note":null,"tags":[]},{"id":"16-t3.1","ref":"3.1","d":1,"text":"Parámetros: por valor, `const&`, `&&`, vistas; devolución de valores","note":null,"tags":["value-sem","performance"]},{"id":"16-t3.2","ref":"3.2","d":1,"text":"Invariantes, `explicit`, tipos fuertes, difícil de usar mal","note":null,"tags":["type-design","safety"]},{"id":"16-t3.3","ref":"3.3","d":1,"text":"Inyección de dependencias con concepts para testabilidad","note":null,"tags":["generic","tooling","emb:ok"]},{"id":"16-t4","ref":"4","d":0,"text":"ABI y bibliotecas","note":null,"tags":[]},{"id":"16-t4.1","ref":"4.1","d":1,"text":"Estabilidad de ABI, por qué el estándar no rompe `std::string`","note":null,"tags":["abi"]},{"id":"16-t4.2","ref":"4.2","d":1,"text":"PIMPL, *fast PIMPL*, interfaces abstractas","note":"PIMPL implica heap salvo storage fijo","tags":["abi","emb:cond"]},{"id":"16-t4.3","ref":"4.3","d":1,"text":"Visibilidad de símbolos, `-fvisibility=hidden`, versionado","note":null,"tags":["abi"]},{"id":"16-t5","ref":"5","d":0,"text":"Interoperabilidad","note":null,"tags":[]},{"id":"16-t5.1","ref":"5.1","d":1,"text":"APIs en C: `extern \"C\"`, tipos opacos, propiedad entre fronteras","note":null,"tags":["interop","abi","emb:ok"]},{"id":"16-t5.2","ref":"5.2","d":1,"text":"Rust: `cxx`, `bindgen`, cbindgen; reparto de propiedad","note":null,"tags":["interop","safety"]},{"id":"16-t5.3","ref":"5.3","d":1,"text":"Python: pybind11/nanobind para herramientas de test","note":null,"tags":["interop","tooling"]}],"exercise":{"id":"16-ex","text":"Diseñar la interfaz de un driver de sensor con tres implementaciones (virtual, concept y type erasure con buffer fijo), medir tamaño de código y RAM de cada una en ARM y exponer la API como C para su uso desde Rust o Python."},"questions":[{"id":"16-q1","text":"¿Cuándo elegirías `std::variant`, una jerarquía virtual o type erasure?"},{"id":"16-q2","text":"¿Qué cambios en una clase rompen la ABI?"},{"id":"16-q3","text":"¿Cómo pasarías la propiedad de un objeto C++ a código Rust de forma segura?"},{"id":"16-q4","text":"Diseña una API que haga imposible confundir el orden de dos parámetros enteros."}]},{"n":"17","slug":"17-rendimiento","title":"Rendimiento y diseño orientado a datos","intro":"Módulo nuevo. Navegadores, motores de búsqueda e infraestructura a gran escala exigen razonar sobre caché, asignaciones y coste de abstracciones, y medir en vez de suponer.","items":[{"id":"17-t1","ref":"1","d":0,"text":"Medir: benchmarks fiables (Google Benchmark), `perf`, flame graphs, contadores de hardware","note":null,"tags":["performance","tooling"]},{"id":"17-t2","ref":"2","d":0,"text":"Memoria","note":null,"tags":[]},{"id":"17-t2.1","ref":"2.1","d":1,"text":"Jerarquía de caché, localidad, prefetching","note":"MCUs sin caché: importa el acceso a flash","tags":["performance","emb:cond"]},{"id":"17-t2.2","ref":"2.2","d":1,"text":"AoS frente a SoA, diseño orientado a datos","note":null,"tags":["performance","type-design","emb:ok"]},{"id":"17-t2.3","ref":"2.3","d":1,"text":"Asignaciones: coste, pools, arenas, `pmr`, *small buffer optimization*","note":null,"tags":["performance","lifetime","emb:ok"]},{"id":"17-t2.4","ref":"2.4","d":1,"text":"Contenedores: `vector` como opción por defecto, `unordered_map` frente a tablas abiertas","note":null,"tags":["performance","iteration"]},{"id":"17-t3","ref":"3","d":0,"text":"Coste de abstracciones: inlining, devirtualización, `std::function`, excepciones, RTTI","note":null,"tags":["performance","emb:ok"]},{"id":"17-t4","ref":"4","d":0,"text":"Compilador: `-O2`/`-O3`/`-Os`, LTO, PGO, vectorización, `[[likely]]`, `[[assume]]`","note":"PGO poco práctico en target","tags":["performance","tooling","emb:cond"]},{"id":"17-t5","ref":"5","d":0,"text":"Ramas y predicción, código sin ramas, aritmética de punto fijo","note":null,"tags":["performance","emb:ok"]},{"id":"17-t6","ref":"6","d":0,"text":"Concurrencia: false sharing, contención, lock-free frente a mutex","note":null,"tags":["performance","concurrency"]},{"id":"17-t7","ref":"7","d":0,"text":"`std::simd` [26] e intrínsecos (NEON, SSE/AVX)","note":"NEON en Cortex-A; Helium en M55","tags":["performance","emb:cond"]}],"exercise":{"id":"17-ex","text":"Optimizar el procesado de un bloque de muestras de ADC: versión AoS ingenua, versión SoA, versión en punto fijo Q15; medir en host con Google Benchmark y en target con ciclos del DWT."},"questions":[{"id":"17-q1","text":"¿Por qué `std::vector` suele ganar a `std::list` incluso en inserciones en medio?"},{"id":"17-q2","text":"¿Cómo escribirías un microbenchmark que el optimizador no elimine?"},{"id":"17-q3","text":"¿Qué es SoA y cuándo mejora el rendimiento?"},{"id":"17-q4","text":"¿Cómo medirías ciclos de una función en un Cortex-M4?"}]},{"n":"18","slug":"18-calidad","title":"Calidad: testing, sanitizers, fuzzing, análisis estático y build","intro":"Módulo nuevo y transversal: empezar en paralelo al 01. En empresas grandes la calidad está automatizada; se espera dominar CMake moderno, tests, sanitizers y fuzzing.","items":[{"id":"18-t1","ref":"1","d":0,"text":"CMake moderno: targets, propiedades `PUBLIC`/`PRIVATE`/`INTERFACE`, presets, toolchains, FetchContent","note":null,"tags":["tooling","abi","emb:ok"]},{"id":"18-t2","ref":"2","d":0,"text":"Gestión de dependencias: vcpkg, Conan, CPM","note":null,"tags":["tooling"]},{"id":"18-t3","ref":"3","d":0,"text":"Testing","note":null,"tags":[]},{"id":"18-t3.1","ref":"3.1","d":1,"text":"Frameworks: doctest, Catch2, GoogleTest; tests parametrizados","note":null,"tags":["tooling"]},{"id":"18-t3.2","ref":"3.2","d":1,"text":"Diseño testable: dependencias inyectadas, HAL simulada en host","note":null,"tags":["tooling","generic","emb:ok"]},{"id":"18-t3.3","ref":"3.3","d":1,"text":"`static_assert` como test en compilación","note":null,"tags":["tooling","compile-time","emb:ok"]},{"id":"18-t3.4","ref":"3.4","d":1,"text":"Tests en hardware (HIL) y en emulador (QEMU, Renode)","note":null,"tags":["tooling","emb:ok"]},{"id":"18-t4","ref":"4","d":0,"text":"Sanitizers: ASan, UBSan, TSan, MSan; integración en CI","note":null,"tags":["tooling","safety"]},{"id":"18-t5","ref":"5","d":0,"text":"Fuzzing: libFuzzer, AFL++, OSS-Fuzz; fuzzing de parsers de protocolo","note":"en host sobre el mismo código","tags":["tooling","safety","emb:ok"]},{"id":"18-t6","ref":"6","d":0,"text":"Análisis estático: clang-tidy, cppcheck, `-Wall -Wextra`, análisis de flujo, MISRA","note":null,"tags":["tooling","safety","emb:ok"]},{"id":"18-t7","ref":"7","d":0,"text":"Cobertura: gcov/llvm-cov, criterios útiles","note":null,"tags":["tooling"]},{"id":"18-t8","ref":"8","d":0,"text":"Revisión de código y estilo: clang-format, Core Guidelines, guías de Google/Mozilla","note":null,"tags":["tooling"]}],"exercise":{"id":"18-ex","text":"Añadir a este repo un fuzzer libFuzzer para el parser de tramas del módulo 04, un preset con UBSan+ASan y un objetivo de cobertura; corregir lo que encuentren."},"questions":[{"id":"18-q1","text":"¿Qué diferencia hay entre `target_link_libraries(... PUBLIC ...)` y `PRIVATE`?"},{"id":"18-q2","text":"¿Cómo testearías en host un driver que escribe en registros de hardware?"},{"id":"18-q3","text":"¿Qué tipo de bugs encuentra el fuzzing que los tests unitarios no?"},{"id":"18-q4","text":"¿Por qué no puedes combinar ASan y TSan en el mismo binario?"}]}],"rounds":[{"id":"r0","text":"Screening técnico"},{"id":"r1","text":"Coding: LRU cache"},{"id":"r2","text":"Code review con código hostil"},{"id":"r3","text":"Concurrencia y modelo de memoria"},{"id":"r4","text":"Diseño de sistema"},{"id":"r5","text":"Rendimiento y sistemas embebidos"},{"id":"r6","text":"Comportamiento y liderazgo"}],"repo":"https://github.com/vicentemonge/cxx_course"};
+const LS_KEY = "cxx-course-progress-v1";
+const EMB_CLASS = { "emb:ok": "emb-ok", "emb:cond": "emb-cond", "emb:no": "emb-no" };
+const EMB_ICON = { "emb:ok": "🟢", "emb:cond": "🟡", "emb:no": "🔴" };
+
+let state = { checked: {}, scores: {} };
+let filter = null;          // tag activo
+let db = null, docRef = null;
+let pending = null, writing = false, dirty = false;
+
+const byNum = Object.fromEntries(COURSE.modules.map(m => [m.n, m]));
+const ordered = COURSE.order.map(n => byNum[n]);
+
+// Puntos con hijos son encabezados, no casillas
+for (const m of COURSE.modules) {
+  m.items.forEach((it, i) => {
+    const next = m.items[i + 1];
+    it.head = !!next && next.d > it.d;
+  });
+}
+
+function esc(s) {
+  return s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+}
+function inline(s) {
+  return esc(s)
+    .replace(/`([^`]+)`/g, "<code>$1</code>")
+    .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+}
+
+function leaves(m) {
+  const out = m.items.filter(it => !it.head).map(it => ({ id: it.id, tags: it.tags }));
+  out.push({ id: m.exercise.id, tags: [] });
+  for (const q of m.questions) out.push({ id: q.id, tags: [] });
+  return out;
+}
+function pct(done, total) { return total ? Math.round((done / total) * 100) : 0; }
+function isDone(id) { return !!state.checked[id]; }
+
+function tagStats(tag) {
+  let total = 0, done = 0;
+  for (const m of COURSE.modules) for (const it of m.items) {
+    if (!it.head && it.tags.includes(tag)) { total++; if (isDone(it.id)) done++; }
+  }
+  return { total, done };
+}
+
+// ---------------------------------------------------------------- render
+function renderSummary() {
+  let total = 0, done = 0;
+  for (const m of COURSE.modules) for (const l of leaves(m)) { total++; if (isDone(l.id)) done++; }
+  const mods = ordered.filter(m => leaves(m).every(l => isDone(l.id))).length;
+  document.getElementById("summary").innerHTML =
+    `Llevas <strong>${done} de ${total}</strong> elementos (${pct(done, total)} %) y ` +
+    `<strong>${mods} de ${ordered.length}</strong> módulos completos.`;
+}
+
+function renderRoute() {
+  const ol = document.getElementById("route");
+  ol.innerHTML = ordered.map(m => {
+    const ls = leaves(m), d = ls.filter(l => isDone(l.id)).length, p = pct(d, ls.length);
+    return `<li class="${p === 100 ? "done" : ""}"><button type="button" class="stop ${p === 100 ? "full" : ""}"
+      data-go="${m.n}" aria-label="Módulo ${m.n}: ${esc(m.title)}, ${p} %">
+      <span class="ring" style="--p:${p}"><span>${m.n}</span></span><small>${p}%</small></button></li>`;
+  }).join("");
+}
+
+function renderChips() {
+  const chip = (tag, label) => {
+    const s = tagStats(tag);
+    return `<button type="button" class="chip tag" data-tag="${tag}" aria-pressed="${filter === tag}"
+      title="${esc((COURSE.core[tag] || COURSE.emb[tag]) || "")}">${label}<span class="pct">${pct(s.done, s.total)} %</span></button>`;
+  };
+  document.getElementById("chips-core").innerHTML = Object.keys(COURSE.core).map(t => chip(t, "@" + t)).join("");
+  document.getElementById("chips-emb").innerHTML = Object.keys(COURSE.emb).map(t => chip(t, EMB_ICON[t] + " @" + t)).join("");
+  const note = document.getElementById("filter-note");
+  if (filter) {
+    const s = tagStats(filter);
+    note.hidden = false;
+    note.innerHTML = `Mostrando los ${s.total} puntos con <code>@${esc(filter)}</code>: ${s.done} hechos. ` +
+      `<button type="button" data-clear>Quitar filtro</button>`;
+  } else {
+    note.hidden = true;
+  }
+}
+
+function itemHtml(it) {
+  const tags = it.tags.map(t => `<span class="tag ${EMB_CLASS[t] || ""}">${EMB_ICON[t] ? EMB_ICON[t] + " " : ""}@${esc(t)}</span>`).join("");
+  const note = it.note ? `<span class="note">${inline(it.note)}</span>` : "";
+  const meta = tags || note ? `<span class="meta">${tags}${note}</span>` : "";
+  if (it.head) {
+    return `<li class="head" data-d="${it.d}"><span class="t">${inline(it.text)}</span>${meta}</li>`;
+  }
+  return `<li data-d="${it.d}"><label class="item"><input type="checkbox" data-id="${it.id}" ${isDone(it.id) ? "checked" : ""}>
+    <span class="txt"><span class="t">${inline(it.text)}</span>${meta}</span></label></li>`;
+}
+function simpleItem(id, text) {
+  return `<li><label class="item"><input type="checkbox" data-id="${id}" ${isDone(id) ? "checked" : ""}>
+    <span class="txt"><span class="t">${inline(text)}</span></span></label></li>`;
+}
+
+function visibleItems(m) {
+  if (!filter) return m.items;
+  // un encabezado se muestra si algún descendiente coincide
+  const keep = new Set();
+  m.items.forEach((it, i) => {
+    if (it.head || !it.tags.includes(filter)) return;
+    keep.add(i);
+    for (let j = i - 1, d = it.d; j >= 0 && d > 0; j--) {
+      if (m.items[j].d < d) { keep.add(j); d = m.items[j].d; }
+    }
+  });
+  return m.items.filter((_, i) => keep.has(i));
+}
+
+function renderModules() {
+  const host = document.getElementById("modules");
+  const open = new Set([...host.querySelectorAll("details[open]")].map(d => d.dataset.n));
+  host.innerHTML = ordered.map(m => {
+    const items = visibleItems(m);
+    if (filter && !items.length) return "";
+    const ls = leaves(m), d = ls.filter(l => isDone(l.id)).length;
+    const extra = filter ? "" : `
+      <h3>Ejercicio</h3><ul class="check">${simpleItem(m.exercise.id, m.exercise.text)}</ul>
+      <h3>Preguntas de control</h3><ul class="check">${m.questions.map(q => simpleItem(q.id, q.text)).join("")}</ul>`;
+    return `<details class="module" id="m${m.n}" data-n="${m.n}" ${open.has(m.n) || filter ? "open" : ""}>
+      <summary><span class="num">${m.n}</span><span class="title">${esc(m.title)}</span>
+        <span class="count">${d}/${ls.length}</span><span class="bar"><i style="width:${pct(d, ls.length)}%"></i></span></summary>
+      <div class="body">
+        ${filter ? "" : `<p class="intro">${inline(m.intro)}</p>`}
+        <h3>Temario</h3><ul class="check">${items.map(itemHtml).join("")}</ul>
+        ${extra}
+        <p class="repo-link"><a href="${COURSE.repo}/tree/main/modules/${m.slug}" target="_blank" rel="noopener">Abrir el módulo en GitHub</a></p>
+      </div></details>`;
+  }).join("");
+}
+
+function renderRounds() {
+  document.getElementById("rounds").innerHTML = COURSE.rounds.map((r, i) => {
+    const s = state.scores[r.id] || 0;
+    const btns = [1, 2, 3, 4].map(v =>
+      `<button type="button" data-round="${r.id}" data-score="${v}" aria-pressed="${s === v}" aria-label="${v}">${v}</button>`).join("");
+    return `<div class="round"><span>${i}. ${esc(r.text)}</span><span class="scores" role="group" aria-label="Puntuación de ${esc(r.text)}">${btns}</span></div>`;
+  }).join("");
+  const vals = COURSE.rounds.map(r => state.scores[r.id]).filter(Boolean);
+  const v = document.getElementById("verdict");
+  if (!vals.length) { v.textContent = "Sin rondas puntuadas todavía."; return; }
+  const avg = vals.reduce((a, b) => a + b, 0) / vals.length;
+  const min = Math.min(...vals), has4 = vals.includes(4);
+  let decision;
+  const faltan = COURSE.rounds.length - vals.length;
+  const rondas = n => `${n} ${n === 1 ? "ronda" : "rondas"}`;
+  if (faltan) decision = `${faltan === 1 ? "falta" : "faltan"} ${rondas(faltan)}`;
+  else if (avg >= 3 && min >= 2 && has4) decision = "contratación según la rúbrica, salvo vetos";
+  else decision = "por debajo del listón de contratación";
+  v.textContent = `Media ${avg.toFixed(2).replace(".", ",")} con ${rondas(vals.length)}: ${decision}.`;
+}
+
+function renderAll() { renderSummary(); renderRoute(); renderChips(); renderModules(); renderRounds(); }
+function renderProgress() { renderSummary(); renderRoute(); renderChips(); renderRounds();
+  // actualizar contadores de módulos sin redibujar (conserva foco y scroll)
+  for (const m of ordered) {
+    const el = document.getElementById("m" + m.n); if (!el) continue;
+    const ls = leaves(m), d = ls.filter(l => isDone(l.id)).length;
+    el.querySelector(".count").textContent = `${d}/${ls.length}`;
+    el.querySelector(".bar i").style.width = pct(d, ls.length) + "%";
+  }
+}
+
+// ---------------------------------------------------------------- persistencia
+function setSync(msg) { document.getElementById("sync").textContent = msg; }
+function saveLocal() { try { localStorage.setItem(LS_KEY, JSON.stringify(state)); } catch (_) {} }
+function loadLocal() {
+  try { const s = JSON.parse(localStorage.getItem(LS_KEY) || "null"); if (s && s.checked) return s; } catch (_) {}
+  return null;
+}
+function normalize(d) {
+  return { checked: (d && typeof d.checked === "object" && d.checked) || {},
+           scores: (d && typeof d.scores === "object" && d.scores) || {} };
+}
+
+function schedule() {
+  saveLocal();
+  if (!docRef) return;
+  dirty = true;
+  clearTimeout(pending);
+  pending = setTimeout(flush, 600);
+}
+async function flush() {
+  if (!docRef || writing || !dirty) return;
+  writing = true; dirty = false;
+  setSync("Guardando…");
+  try {
+    await docRef.set({ checked: state.checked, scores: state.scores, updated: Date.now() });
+    setSync("Guardado y sincronizado entre tus dispositivos.");
+  } catch (e) {
+    setSync(e && e.code === "invalid_argument"
+      ? "No tienes permiso para guardar aquí: el progreso queda solo en este navegador."
+      : "No se pudo sincronizar; se reintentará con el próximo cambio.");
+  } finally {
+    writing = false;
+    if (dirty) flush();
+  }
+}
+
+async function connect() {
+  if (!window.claude || typeof window.claude.use !== "function") {
+    setSync("Guardado solo en este navegador.");
+    return;
+  }
+  const [dbNs, user] = await Promise.all([window.claude.use("db"), window.claude.use("user")]);
+  const id = user ? await user.id() : null;
+  if (!dbNs || !id) { setSync("Guardado solo en este navegador: inicia sesión para sincronizar."); return; }
+  db = dbNs;
+  docRef = db.doc(`data/users/${id}/progreso`);
+  try {
+    const snap = await docRef.get();
+    if (snap.exists) {
+      state = normalize(snap.data());
+      saveLocal();
+      renderAll();
+    } else if (Object.keys(state.checked).length || Object.keys(state.scores).length) {
+      dirty = true; flush();   // primer uso: subir lo que hubiera en este navegador
+    }
+    setSync("Sincronizado entre tus dispositivos.");
+    docRef.onSnapshot(s => {
+      if (!s.exists || writing || dirty) return;
+      const next = normalize(s.data());
+      if (JSON.stringify(next) === JSON.stringify(state)) return;
+      state = next; saveLocal(); renderProgress(); syncChecks();
+    }, () => setSync("Sincronización en pausa; los cambios se guardan en este navegador."));
+  } catch (_) {
+    docRef = null;
+    setSync("No se pudo conectar; guardado solo en este navegador.");
+  }
+}
+function syncChecks() {
+  for (const cb of document.querySelectorAll("input[data-id]")) cb.checked = isDone(cb.dataset.id);
+}
+
+// ---------------------------------------------------------------- eventos
+document.addEventListener("change", e => {
+  const cb = e.target.closest("input[data-id]");
+  if (!cb) return;
+  if (cb.checked) state.checked[cb.dataset.id] = Date.now(); else delete state.checked[cb.dataset.id];
+  renderProgress(); schedule();
+});
+document.addEventListener("click", e => {
+  const go = e.target.closest("[data-go]");
+  if (go) {
+    const el = document.getElementById("m" + go.dataset.go);
+    if (el) { el.open = true; el.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" }); }
+    return;
+  }
+  const chip = e.target.closest("[data-tag]");
+  if (chip) { filter = filter === chip.dataset.tag ? null : chip.dataset.tag; renderChips(); renderModules(); return; }
+  if (e.target.closest("[data-clear]")) { filter = null; renderChips(); renderModules(); return; }
+  const sc = e.target.closest("[data-score]");
+  if (sc) {
+    const r = sc.dataset.round, v = Number(sc.dataset.score);
+    if (state.scores[r] === v) delete state.scores[r]; else state.scores[r] = v;
+    renderRounds(); schedule(); return;
+  }
+  if (e.target.id === "expand") {
+    const all = [...document.querySelectorAll("details.module")];
+    const openAll = all.some(d => !d.open);
+    all.forEach(d => { d.open = openAll; });
+    e.target.textContent = openAll ? "Plegar todo" : "Desplegar todo";
+  }
+});
+
+document.getElementById("repo-link").href = COURSE.repo;
+state = normalize(loadLocal());
+renderAll();
+connect();
+</script>
+</body>
+</html>
